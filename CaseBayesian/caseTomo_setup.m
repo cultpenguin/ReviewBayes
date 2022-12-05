@@ -45,8 +45,8 @@ forward.linear_m=0.14; % Needed when m0 is set to 0 (using target distribution, 
 %% SETUP THE FORWARD MODEL
 forward.sources=D.S;
 forward.receivers=D.R;
-%forward.type='eikonal';
-forward.type='ray_2d';forward.r=2;
+forward.type='eikonal';
+%forward.type='ray_2d';forward.r=2;
 %forward.type='fat';
 forward.linear=1;
 forward.freq=0.1;
