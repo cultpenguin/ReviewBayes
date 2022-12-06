@@ -4,7 +4,7 @@ load caseBayesian_dx50_Ffat-none_ME0
 nx=length(prior{1}.x);
 ny=length(prior{1}.y);
 
-N = 100000;
+N = 5000000;
 m_propose=zeros(ny,nx,N);
 d_propose=zeros(length(d{1}),N);
 logL=zeros(1,N);
