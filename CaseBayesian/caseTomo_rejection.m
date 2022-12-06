@@ -1,11 +1,22 @@
 clear all;close all
 load caseBayesian_dx50_Ffat-none_ME0
 
+nx=length(prior{1}.x);
+ny=length(prior{1}.y);
+
 N = 100000;
+m_propose=zeros(ny,nx,N);
+d_propose=zeros(length(d{1}),N);
+logL=zeros(1,N);
+
 % sample prior
 [m,prior]=sippi_prior(prior);
-for i=1:N;
-    if mod(i,100)==0, progress_txt(i,N,'Forward');end
+t0=now;
+parfor i=1:N;
+    if mod(i,1000)==0, 
+        [t_end_txt,t_left_seconds]=time_loop_end(t0,i,N);
+        progress_txt(i,N,['Forward ',t_end_txt]);
+    end
     % sample prior;
     m=sippi_prior(prior);
     m_propose(:,:,i)=m{1};
