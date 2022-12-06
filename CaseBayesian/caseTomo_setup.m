@@ -1,8 +1,9 @@
 clear all;close all
 
+cax=0.145+[-1 1].*.03;
+cmap=jet;
+
 % Load data
-clear all
-close all
 D=load('AM13_data.mat');
 options.txt='AM13_bimodal';
 
@@ -17,16 +18,9 @@ data{id}.Ct=D.Ct; % modelization and static error
 
 
 %% SETUP PRIOR
-dx=0.15;
-im=1;
-prior{im}.type='FFTMA';
-prior{im}.name='Velocity (m/ns)';
-prior{im}.Va='.0003 Sph(6)';
-prior{im}.x=[-1:dx:6];
-prior{im}.y=[0:dx:13];
-
-prior{im}.cax=[.1 .18];
-prior{im}.cax=[.12 .17];
+dx=0.25;
+dx=0.5;
+dx=0.1;
 
 % bimodal distribution
 N=10000;
@@ -36,18 +30,29 @@ d1=randn(1,ceil(N*(1-prob_chan)))*.0045+0.145-dd;  %0.1125;
 d2=randn(1,ceil(N*(prob_chan)))*.0045+0.145+dd; %0.155;
 d=[d1(:);d2(:)];
 [d_nscore,o_nscore]=nscore(d,1,1,min(d),max(d),0);
+var0=var(d);
+m0=mean(d);
+
+im=1;
+clear prior
+prior{im}.type='FFTMA';
+prior{im}.name='Velocity (m/ns)';
+prior{im}.Va=sprintf(sprintf('%5.4f Sph(6,90,.2)',var0));
+prior{im}.x=[-1:dx:6];
+prior{im}.y=[0:dx:13];
+prior{im}.cax=cax;
 prior{im}.o_nscore=o_nscore;
 
-prior=sippi_prior_init(prior);
 m=sippi_prior(prior);
-forward.linear_m=0.14; % Needed when m0 is set to 0 (using target distribution, and forward.linear=1;)�
+imagesc(m{1});colorbar
 
 %% SETUP THE FORWARD MODEL
+forward.linear_m=m0; % Needed when m0 is set to 0 (using target distribution, and forward.linear=1;)�
 forward.sources=D.S;
 forward.receivers=D.R;
 forward.type='eikonal';
 %forward.type='ray_2d';forward.r=2;
-%forward.type='fat';
+forward.type='fat';
 forward.linear=1;
 forward.freq=0.1;
 forward.forward_function='sippi_forward_traveltime';
@@ -78,8 +83,7 @@ else
 end
 
 % 
-cax=0.145+[-1 1].*.03;
-cmap=jet;
+
 txt=sprintf('caseBayesian_dx%d_F%s-%s_ME%d',ceil(100*dx),forward.type,forward_full.type,comp_model_error)
 save(txt)
 
