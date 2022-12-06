@@ -4,7 +4,7 @@ clear all;close all
 % load data
 %load('caseBayesian_dx50_Fray_2d-none_ME0.mat','prior','data','D','cax','txt')
 load('caseBayesian_dx10_Ffat-none_ME0','prior','data','D','cax','txt')
-load('caseBayesian_dx25_Ffat-none_ME0','prior','data','D','cax','txt')
+%load('caseBayesian_dx25_Ffat-none_ME0','prior','data','D','cax','txt')
 %load('caseBayesian_dx50_Ffat-none_ME0','prior','data','D','cax','txt')
 
 

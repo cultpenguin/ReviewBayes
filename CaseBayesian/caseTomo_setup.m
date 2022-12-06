@@ -19,8 +19,8 @@ data{id}.Ct=D.Ct; % modelization and static error
 
 %% SETUP PRIOR
 dx=0.25;
-dx=0.5;
-dx=0.1;
+%dx=0.5;
+%dx=0.1;
 
 % bimodal distribution
 N=10000;

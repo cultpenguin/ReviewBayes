@@ -1,6 +1,5 @@
 clear all;close all
-load caseBayesian_dx15_Fray_2d-none_ME0.mat
-
+load caseBayesian_dx50_Ffat-none_ME0
 
 N = 10000;
 % sample prior
@@ -33,7 +32,7 @@ for i=1:N;
 end
 
 %% Rejection
-T=20
+T=100
 Pacc = exp( (1/T)*(logL-max(logL)) );
 r=rand(1,N);
 i_sample = find(Pacc>r);
@@ -54,4 +53,50 @@ axis image
 
 
 
-save(sprintf('%s_rejection_data',txt))
+save(sprintf('%s_rejection_out',txt))
+
+%%
+
+nx=length(prior{1}.x);
+ny=length(prior{1}.y);
+
+dx=prior{1}.x(2)-prior{1}.x(1);
+
+Nr=5;
+
+figure(11);
+for i=1:Nr
+    subplot(3,Nr,i)
+    m=sippi_prior(prior);
+    imagesc(prior{1}.x,prior{1}.y,m_propose(:,:,i))
+    axis image
+    caxis(prior{1}.cax);colormap(cmap)
+    title('\rho(m)\rightarrowm^*')
+end
+print_mul(sprintf('%s_N%d_prior_sample',txt,N))
+figure(12);
+for i=1:Nr
+    subplot(3,Nr,i)
+    try
+    imagesc(prior{1}.x,prior{1}.y,m_post(:,:,i))
+    end
+    axis image;caxis(prior{1}.cax);colormap(cmap)
+    title('\sigma(m)\rightarrowm^*')
+end
+print_mul(sprintf('%s_N%d_post_sample',txt,N))
+
+figure(13);clf
+subplot(1,2,1)
+imagesc(prior{1}.x,prior{1}.y,m_mean)
+axis image;caxis(prior{1}.cax);colormap(cmap)
+colorbar
+title('\sigma(m) - mean')
+subplot(1,2,2)
+imagesc(prior{1}.x,prior{1}.y,sqrt(m_var))
+axis image;colormap(cmap)
+title('\sigma(m) - standard deviation')
+colorbar
+print_mul(sprintf('%s_N%d_post_mean_std',txt,N))
+    
+save(sprintf('%s_out',txt))
+

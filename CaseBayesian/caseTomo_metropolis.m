@@ -65,7 +65,8 @@ title('\sigma(m) - standard deviation')
 colorbar
 print_mul(sprintf('%s_N%d_post_mean_std',txt,options.mcmc.nite))
     
-save(sprintf('%s_out',txt))
+
+save(sprintf('%s_metropolis_out',txt))
 
 return
 
