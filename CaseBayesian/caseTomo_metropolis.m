@@ -1,9 +1,13 @@
 clear all;close all
 %load caseBayesian_dx15_Fray_2d-none_ME0.mat
-load caseBayesian_dx50_Fray_2d-none_ME0
+%load caseBayesian_dx50_Fray_2d-none_ME0
 %load caseBayesian_dx25_Feikonal-none_ME0.mat
 %load caseBayesian_dx50_Feikonal-none_ME0.mat
-load('caseBayesian_dx50_Ffat-none_ME0')
+
+load('caseBayesian_dx10_Ffat-none_ME0')
+%load('caseBayesian_dx25_Ffat-none_ME0')
+%load('caseBayesian_dx50_Ffat-none_ME0')
+
 
 %% SETUP METROPOLIS
 options.mcmc.nite=200000;
@@ -59,7 +63,7 @@ imagesc(prior{1}.x,prior{1}.y,reshape(std(reals_all),ny,nx))
 axis image;colormap(cmap)
 title('\sigma(m) - standard deviation')
 colorbar
-print_mul(sprintf('%s_N%d_post_mean_std_N',txt,options.mcmc.nite))
+print_mul(sprintf('%s_N%d_post_mean_std',txt,options.mcmc.nite))
     
 save(sprintf('%s_out',txt))
 
