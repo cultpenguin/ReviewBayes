@@ -1,7 +1,7 @@
 clear all;close all
 load caseBayesian_dx50_Ffat-none_ME0
 
-N = 10000;
+N = 100000;
 % sample prior
 [m,prior]=sippi_prior(prior);
 for i=1:N;
