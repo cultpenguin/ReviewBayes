@@ -43,28 +43,18 @@ for i=1:N;
 end
 
 %% Rejection
-T=100
+T=30
 Pacc = exp( (1/T)*(logL-max(logL)) );
 r=rand(1,N);
 i_sample = find(Pacc>r);
 
 m_post=m_propose(:,:,i_sample);
+n_post=size(m_post,3)
 
 [m_mean,m_var]  = etype(m_post);
-figure;
-subplot(1,2,1)
-imagesc(prior{1}.x,prior{1}.y,m_mean);
-caxis(cax);axis image
-colorbar
-subplot(1,2,2)
-imagesc(prior{1}.x,prior{1}.y,sqrt(m_var));
-colorbar
-%caxis([0 0.005]);
-axis image
 
-
-
-save(sprintf('%s_rejection_out',txt))
+%save(sprintf('%s_rejection_out',txt),'-v7.3')
+%% SAVE SA HDF5??
 
 %%
 
