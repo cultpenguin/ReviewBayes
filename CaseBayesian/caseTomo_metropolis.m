@@ -6,7 +6,7 @@ load caseBayesian_dx50_Fray_2d-none_ME0
 load('caseBayesian_dx50_Ffat-none_ME0')
 
 %% SETUP METROPOLIS
-options.mcmc.nite=100000;
+options.mcmc.nite=200000;
 options.mcmc.i_plot=ceil(options.mcmc.nite/10);
 n_reals_out=200;
 options.mcmc.i_sample=options.mcmc.nite/n_reals_out;
@@ -25,7 +25,7 @@ nx=length(prior{1}.x);
 ny=length(prior{1}.y);
 
 dx=prior{1}.x(2)-prior{1}.x(1);
-txt=sprintf('caseTomo_metropolis_%s_dx%d',forward.type,ceil(100*dx));
+
 Nr=5;
 
 figure(11);
@@ -37,8 +37,7 @@ for i=1:Nr
     caxis(prior{1}.cax);colormap(cmap)
     title('\rho(m)\rightarrowm^*')
 end
-print_mul(sprintf('%s_prior_sample',txt))
-
+print_mul(sprintf('%s_N%d_prior_sample',txt,options.mcmc.nite))
 figure(12);
 for i=1:Nr
     subplot(3,Nr,i)
@@ -47,7 +46,7 @@ for i=1:Nr
     axis image;caxis(prior{1}.cax);colormap(cmap)
     title('\sigma(m)\rightarrowm^*')
 end
-print_mul(sprintf('%s_post_sample',txt))
+print_mul(sprintf('%s_N%d_post_sample',txt,options.mcmc.nite))
 
 figure(13);clf
 subplot(1,2,1)
@@ -60,7 +59,7 @@ imagesc(prior{1}.x,prior{1}.y,reshape(std(reals_all),ny,nx))
 axis image;colormap(cmap)
 title('\sigma(m) - standard deviation')
 colorbar
-print_mul(sprintf('%s_post_mean_std',txt))
+print_mul(sprintf('%s_N%d_post_mean_std_N',txt,options.mcmc.nite))
     
 save(sprintf('%s_out',txt))
 
