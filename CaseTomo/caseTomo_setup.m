@@ -1,6 +1,4 @@
-clear all
 close all
-forward.type='eikonal';
 if ~exist('dx','var')
     %dx=0.5;
     dx=0.25;
