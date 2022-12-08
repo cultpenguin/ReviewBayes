@@ -1,9 +1,13 @@
 close all
+if ~exist('rseed','var');rseed=1;end
 if ~exist('dx','var')
     %dx=0.5;
     dx=0.25;
     dx=0.1;
 end
+
+%%
+if rseed>0; rng(rseed);end
 forward.null=[];
 
 ax=[-1 6 0 13];
@@ -94,6 +98,7 @@ save(txt)
 
 %%
 figure(1)
+if rseed>0; rng(rseed);end
 for i=1:5;
     subplot(1,5,i);
     m=sippi_prior(prior);
@@ -110,7 +115,7 @@ try
     figure;
     histogram(prior{1}.o_nscore.d)
     xlabel('Velocity (m/\mus)')
-    print -dpng -r300 caseTomo_prior1Dmarg
+    print_mul(sprintf('%s_%s',txt,'prior1Dmarg'))
 end
 
 %% 
@@ -124,16 +129,19 @@ hold off
 axis image
 axis(ax)
 xlabel('X (m)');ylabel('Y (m)')
+print_mul(sprintf('%s_%s',txt,'SR'))
 print -dpng -r300 caseTomo_SR
 
 %% Frechet
-dv=0.0001;
+dv=0.0005;
 iray=10;
+if rseed>0; rng(rseed);end
 m_ref=sippi_prior(prior);
 d_ref=sippi_forward(m_ref,forward,prior);
+m_fre=zeros(length(prior{1}.y),length(prior{1}.x))
 for ix = 1:length(prior{1}.x);
     progress_txt(ix,length(prior{1}.x),'X')
-for iy = 1:length(prior{1}.y);
+parfor iy = 1:length(prior{1}.y);
     m_test=m_ref;
     m_test{1}(iy,ix)=m_ref{1}(iy,ix)+dv;
     d_test=sippi_forward(m_test,forward,prior);
@@ -161,7 +169,7 @@ hold off
 axis image;
 colorbar_shift;
 title(sprintf('Frechét derivative [dd/dm]'))
-print('-dpng','-r300',sprintf('caseTomo_frechet_%s_L%d_SR%d',forward.type,forward.linear,iray))
+print_mul(sprintf('%s_frechet_%s_L%d_SR%d',txt,forward.type,forward.linear,iray))
 
 
 

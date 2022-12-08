@@ -7,6 +7,9 @@ if ~exist('N','var');
     N = ceil(300000/32);
 end
 if ~exist('doSave','var'); doSave=1; end
+if ~exist('rseed','var'); rseed=1;end
+if rseed>0; Use rng('default') ;rng(rseed);end
+
 
 %%
 load(fmat,'prior','forward','data','txt')

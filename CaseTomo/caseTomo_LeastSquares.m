@@ -9,6 +9,8 @@ load('caseBayesian_dx10_Ffat-none_ME0','prior','data','D','cax','txt')
 
 
 if ~exist('cmap','var'); cmap=jet;;end
+if ~exist('rseed','var'); rseed=1;end
+if rseed>0; Use rng('default') ;rng(rseed);end
 
 %% FORWARD MODEL
 forward.sources=D.S;

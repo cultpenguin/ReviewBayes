@@ -8,6 +8,8 @@ if ~exist('N','var');
 end
 if ~exist('doSave','var'); doSave=1; end
 if ~exist('doSimNoise','var'); doSimNoise=0; end
+if ~exist('rseed','var'); rseed=1;end
+if rseed>0; Use rng('default');rng(rseed);end
 
 
 %%
