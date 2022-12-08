@@ -1,33 +1,107 @@
-clear all;close all
-load caseBayesian_dx50_Ffat-none_ME0
+%clear all;
+close all
+
+if ~exist('fmat','var'); fmat='caseBayesian_dx50_Ffat-none_ME0';end
+if ~exist('N','var');
+    N=10000;
+    N = ceil(300000/32);
+end
+if ~exist('doSave','var'); doSave=0; end
+if ~exist('doSimNoise','var'); doSimNoise=0; end
+
+
+%%
+load(fmat,'prior','forward','data','txt')
 
 nx=length(prior{1}.x);
 ny=length(prior{1}.y);
+Nd=length(data{1}.d_obs);
 
-N = 3000000;
-m_propose=rand(ny,nx,N);
-d_propose=rand(length(d{1}),N);
-logL=zeros(1,N);
+txt_h5=sprintf('%s_rejection_N%d_out',txt,N)
+h5=[txt_h5,'.h5'];
+%%
+clc
+delete(h5)
+%h5create('test.h5','/RJ/M',[ny nx N])
+h5create(h5,'/D',[Nd,N],'ChunkSize',[Nd,1])
+h5create(h5,'/M',[ny,nx,N],'ChunkSize',[ny nx 1])
+%m=sippi_prior(prior)
+%h5write(h5,'/M',m{1},[1,1,1],[ny,nx,1])
+%h5write(h5,'/M',m{1},[1,1,11],[ny,nx,1])
+%h5write(h5,'/D',data{1}.d_obs,[1,1],[Nd,1])
+%mydata = ones(ny,nx,N);
+%h5write('test.h5','/RJ/M',mydata)
+%h5disp(h5)
+%d5=h5read(h5,'/D');
+%m5=h5read(h5,'/M');
+%size(d5)
 
-% sample prior
+%%
+% initialize
 [m,prior]=sippi_prior(prior);
-t0=now;
-parfor i=1:N;
-    if mod(i,1000)==0, 
-        [t_end_txt,t_left_seconds]=time_loop_end(t0,i,N);
-        progress_txt(i,N,['Forward ',t_end_txt]);
+[d,forward]=sippi_forward(m,forward,prior);
+[~,~,data]=sippi_likelihood(d,data);
+
+N_chunk = 50000;
+N_loop = ceil(N/N_chunk);
+
+logL=zeros(1,N);
+t_start=now;
+for ic = 1:N_loop
+    i_start = (ic-1)*N_chunk+1;
+    if ic==N_loop
+        i_end = N;
+    else
+        i_end = ic*N_chunk;
     end
-    % sample prior;
-    m=sippi_prior(prior);
-    m_propose(:,:,i)=m{1};
-    % compute forward response
-    d=sippi_forward(m,forward,prior);
-    d_propose(:,i)=d{1};
-    % compute log-likelihood
-    logL(i)=sippi_likelihood(d,data);
+    disp(sprintf('ic=%02d/%02d, %06d-%06d -- N_chunk=%d',ic,N_loop,i_start,i_end,N_chunk))
+    ii=i_start:1:i_end;
+    m_propose=rand(ny,nx,N_chunk);
+    d_propose=rand(Nd,N_chunk);
+    logL_propose=zeros(1,N_chunk);
+    
+
+    
+    Nd_in_loop=(1+i_end-i_start);
+    parfor i=1:Nd_in_loop
+        if mod(i,100)==0,
+            [t_end_txt,t_left_seconds]=time_loop_end(t_start,i,Nd_in_loop);
+            [t_end_txt,t_left_seconds]=time_loop_end(t_start,ii(i),N);
+            progress_txt(ii(i),N,['Forward ',t_end_txt]);
+        end
+        % sample prior;
+        m=sippi_prior(prior);
+        m_propose(:,:,i)=m{1};
+        % compute forward response
+        d=sippi_forward(m,forward,prior);
+        d_propose(:,i)=d{1};
+        % compute log-likelihood
+        logL_propose(i)=sippi_likelihood(d,data);
+    end
+    t_end = now;
+    t_elapsed_minutes=(t_end-t_start)*60*24;
+
+    logL(i_start:1:i_end)=logL_propose(1:Nd_in_loop);
+    h5write(h5,'/M',m_propose(:,:,1:Nd_in_loop),[1,1,i_start],[ny,nx,Nd_in_loop])
+    h5write(h5,'/D',d_propose(:,1:Nd_in_loop),[1,i_start],[Nd,Nd_in_loop])
+
 end
+
+clear m_propose
+clear d_propose
+
+
+%logL(i_start:1:i_end)=logL_propose(1:Nd_in_loop);
+%h5write(h5,'/M',m_propose(:,:,1:Nd_in_loop),[1,1,i_start],[ny,nx,Nd_in_loop])
+%h5write(h5,'/D',d_propose(:,1:Nd_in_loop),[1,i_start],[Nd,Nd_in_loop])
+
+disp(sprintf('Time to setup [M,D]: %4.3f minutes',t_elapsed_minutes))
+
+
+%%
+%d5=h5read(h5,'/D');
+%m5=h5read(h5,'/M');
 %% simulate noise (for ML and EnK)%
-doSimNoise = 1;
 if doSimNoise==1
     Ct = diag(data{1}.d_std) + data{1}.Ct;
     try
@@ -36,68 +110,146 @@ if doSimNoise==1
         t0 = 0
     end
     d_noise=gaussian_simulation_cholesky(t0,Ct,N);
-end
-d_sim=d_noise.*0;
-for i=1:N;
-    d_sim(:,i)=d_propose(:,i)+d_noise(:,i);
+    d_sim=d_noise.*0;
+    for i=1:N;
+        d_sim(:,i)=d_propose(:,i)+d_noise(:,i);
+    end
 end
 
+if doSave==1
+    save(txt_h5)
+end
+
+
+%% SAVE AS HDF5??
+
 %% Rejection
-T=30
+% Compute evidence
+maxlogL=max(logL);
+log_evidence = maxlogL + log( nansum(exp(logL-maxlogL))/length(logL) );
+
+% Compute annealing temperature
+N_above=20;
+P_acc_lev=0.1;
+
+sort_logL=sort(logL-max(logL));
+if sum(~isnan(sort_logL))>0
+    if isnan(sort_logL(end))
+        sort_logL=sort_logL(~isnan(sort_logL));
+    end
+    logl_lev=sort_logL(end-N_above-1);
+
+    T_est = logl_lev/log(P_acc_lev);
+    T_est = max([1 T_est]);
+else
+    T_est = inf;
+end
+%
+T=ceil(T_est);
+
 Pacc = exp( (1/T)*(logL-max(logL)) );
+
 r=rand(1,N);
 i_sample = find(Pacc>r);
 
-m_post=m_propose(:,:,i_sample);
-n_post=size(m_post,3)
+%m_propose_big = h5read(h5,'/M');
+%m_post_big=m_propose_big(:,:,i_sample);
+for i=1:length(i_sample)
+    m_post(:,:,i)=h5read(h5,'/M',[1 1 i_sample(i)],[ny nx 1]);
+end
+n_post=size(m_post,3);
 
 [m_mean,m_var]  = etype(m_post);
 
-%save(sprintf('%s_rejection_out',txt),'-v7.3')
-%% SAVE SA HDF5??
+txt_out = sprintf('%s_rejection_N%d_T%d',txt,N,T);
+disp(txt_out)
 
 %%
+figure(10);clf;
+subplot(3,1,1)
+semilogy(exp((logL-max(logL))),'.');ylim([1e-100 1])
+title(sprintf('T=%g',1))
+subplot(3,1,2)
+semilogy(exp((1/T)*(logL-max(logL))),'.');ylim([1e-100 1])
+title(sprintf('T=%g',T))
+subplot(3,1,3)
+semilogy(exp((1/T)*(logL-max(logL))),'-');ylim([1e-2 1])
+title(sprintf('T=%g',T))
+print_mul(sprintf('%s_anneal',txt_out))
 
+%%
 nx=length(prior{1}.x);
 ny=length(prior{1}.y);
 
 dx=prior{1}.x(2)-prior{1}.x(1);
 
-Nr=5;
+Nr=25;
+Nr_show=5;
 
 figure(11);
 for i=1:Nr
-    subplot(3,Nr,i)
-    m=sippi_prior(prior);
-    imagesc(prior{1}.x,prior{1}.y,m_propose(:,:,i))
-    axis image
-    caxis(prior{1}.cax);colormap(cmap)
-    title('\rho(m)\rightarrowm^*')
+    %m=sippi_prior(prior);
+    m{1}=h5read(h5,'/M',[1 1 i],[ny nx 1]);
+    d=sippi_forward(m,forward,prior);
+    d_prior(:,i)=d{1};
+    if i<=Nr_show
+        subplot(3,Nr_show,i)
+        imagesc(prior{1}.x,prior{1}.y,m{1})
+        axis image
+        caxis(prior{1}.cax);colormap(prior{1}.cmap)
+        title('\rho(m)\rightarrowm^*')
+    end
 end
-print_mul(sprintf('%s_N%d_prior_sample',txt,N))
+print_mul(sprintf('%s_prior_sample',txt_out))
 figure(12);
 for i=1:Nr
-    subplot(3,Nr,i)
     try
-    imagesc(prior{1}.x,prior{1}.y,m_post(:,:,i))
+        m{1}=m_post(:,:,i);
+        d=sippi_forward(m,forward,prior);
+        d_post(:,i)=d{1};
+        if i<=Nr_show
+            subplot(3,Nr_show,i)
+            imagesc(prior{1}.x,prior{1}.y,m{1})
+            axis image;caxis(prior{1}.cax);colormap(prior{1}.cmap)
+            title('\sigma(m)\rightarrowm^*')
+        end
     end
-    axis image;caxis(prior{1}.cax);colormap(cmap)
-    title('\sigma(m)\rightarrowm^*')
+    
 end
-print_mul(sprintf('%s_N%d_post_sample',txt,N))
+print_mul(sprintf('%s_post_sample',txt_out))
 
 figure(13);clf
 subplot(1,2,1)
 imagesc(prior{1}.x,prior{1}.y,m_mean)
-axis image;caxis(prior{1}.cax);colormap(cmap)
+axis image;caxis(prior{1}.cax);colormap(prior{1}.cmap)
 colorbar
 title('\sigma(m) - mean')
 subplot(1,2,2)
 imagesc(prior{1}.x,prior{1}.y,sqrt(m_var))
-axis image;colormap(cmap)
+axis image;colormap(prior{1}.cmap)
+%colormap(gca,cmap_linear([1 1 1;0 0 0]))
+try
+    caxis(prior{1}.cax_std);
+catch
+    caxis([0 0.02]);
+end
 title('\sigma(m) - standard deviation')
 colorbar
-print_mul(sprintf('%s_N%d_post_mean_std',txt,N))
-    
-save(sprintf('%s_out',txt))
+print_mul(sprintf('%s_post_mean_std',txt_out))
+
+%% 
+figure(14)
+%try
+%    d_std = sqrt(diag(data{1}.CD));
+%catch
+    d_std = data{1}.d_std;
+%end
+p1=plot(d_prior,'k-','LineWidth',4,'color',[1 1 1].*.5);
+hold on
+pe=errorbar(data{1}.d_obs,2*d_std,'color','k');
+p2=plot(d_post,'r-','LineWidth',.1);
+hold off
+print_mul(sprintf('%s_datafit',txt_out))
+
+
 
