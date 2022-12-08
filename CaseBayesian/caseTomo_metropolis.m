@@ -1,16 +1,18 @@
-clear all;close all
-%load caseBayesian_dx15_Fray_2d-none_ME0.mat
-%load caseBayesian_dx50_Fray_2d-none_ME0
-%load caseBayesian_dx25_Feikonal-none_ME0.mat
-%load caseBayesian_dx50_Feikonal-none_ME0.mat
+% clear all
+close all
 
-load('caseBayesian_dx10_Ffat-none_ME0')
-%load('caseBayesian_dx25_Ffat-none_ME0')
-%load('caseBayesian_dx50_Ffat-none_ME0')
+if ~exist('fmat','var'); fmat='caseBayesian_dx50_Ffat-none_ME0';end
+if ~exist('N','var');
+    N=10000;
+    N = ceil(300000/32);
+end
+if ~exist('doSave','var'); doSave=1; end
 
+%%
+load(fmat,'prior','forward','data','txt')
 
 %% SETUP METROPOLIS
-options.mcmc.nite=200000;
+options.mcmc.nite=N;
 options.mcmc.i_plot=ceil(options.mcmc.nite/10);
 n_reals_out=200;
 options.mcmc.i_sample=options.mcmc.nite/n_reals_out;
@@ -23,6 +25,10 @@ options=sippi_metropolis(data,prior,forward,options);
 [reals,etype_mean,etype_var,reals_all,reals_ite]=sippi_get_sample(options.txt,1,100,1);
 
 %%
+if doSave==1
+    save(sprintf('%s_metropolis_out',txt))
+end
+
 %% 
 
 nx=length(prior{1}.x);
@@ -66,7 +72,7 @@ colorbar
 print_mul(sprintf('%s_N%d_post_mean_std',txt,options.mcmc.nite))
     
 
-save(sprintf('%s_metropolis_out',txt))
+
 
 return
 

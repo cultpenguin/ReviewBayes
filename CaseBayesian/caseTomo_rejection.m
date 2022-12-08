@@ -6,7 +6,7 @@ if ~exist('N','var');
     N=10000;
     N = ceil(300000/32);
 end
-if ~exist('doSave','var'); doSave=0; end
+if ~exist('doSave','var'); doSave=1; end
 if ~exist('doSimNoise','var'); doSimNoise=0; end
 
 
@@ -127,6 +127,7 @@ end
 % Compute evidence
 maxlogL=max(logL);
 log_evidence = maxlogL + log( nansum(exp(logL-maxlogL))/length(logL) );
+disp(sprintf('%s: logEvidence=%5.3f',txt_h5,log_evidence))
 
 % Compute annealing temperature
 N_above=20;
@@ -238,7 +239,7 @@ colorbar
 print_mul(sprintf('%s_post_mean_std',txt_out))
 
 %% 
-figure(14)
+figure(14);set_paper('landscape')
 %try
 %    d_std = sqrt(diag(data{1}.CD));
 %catch
@@ -249,7 +250,11 @@ hold on
 pe=errorbar(data{1}.d_obs,2*d_std,'color','k');
 p2=plot(d_post,'r-','LineWidth',.1);
 hold off
+grid on
+xlim([1 702])
+ylim([25 60])
 print_mul(sprintf('%s_datafit',txt_out))
+
 
 
 
