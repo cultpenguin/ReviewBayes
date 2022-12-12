@@ -8,13 +8,16 @@ rng('default')
 %clear all;dx=0.5;forward.type='fat';caseTomo_setup
 
 %% METROPOLIS
-clear all;fmat='caseBayesian_dx50_Ffat-none_ME0.mat';N=200000;caseTomo_metropolis
-clear all;fmat='caseBayesian_dx25_Ffat-none_ME0.mat';N=200000;caseTomo_metropolis
-clear all;fmat='caseBayesian_dx10_Ffat-none_ME0.mat';N=200000;caseTomo_metropolis
+%clear all;fmat='caseBayesian_dx50_Ffat-none_ME0.mat';N=200000;caseTomo_metropolis
+%clear all;fmat='caseBayesian_dx25_Ffat-none_ME0.mat';N=200000;caseTomo_metropolis
+%clear all;fmat='caseBayesian_dx10_Ffat-none_ME0.mat';N=200000;caseTomo_metropolis
+clear all;fmat='caseBayesian_dx50_Feikonal-none_ME0.mat';N=200000;caseTomo_metropolis
+clear all;fmat='caseBayesian_dx25_Feikonal-none_ME0.mat';N=200000;caseTomo_metropolis
+clear all;fmat='caseBayesian_dx10_Feikonalw-none_ME0.mat';N=200000;caseTomo_metropolis
 
-clear all;fmat='caseBayesian_dx50_Ffat-none_ME0.mat';N=200001;caseTomo_metropolis
-clear all;fmat='caseBayesian_dx25_Ffat-none_ME0.mat';N=200001;caseTomo_metropolis
-clear all;fmat='caseBayesian_dx10_Ffat-none_ME0.mat';N=200001;caseTomo_metropolis
+%clear all;fmat='caseBayesian_dx50_Ffat-none_ME0.mat';N=200001;caseTomo_metropolis
+%clear all;fmat='caseBayesian_dx25_Ffat-none_ME0.mat';N=200001;caseTomo_metropolis
+%clear all;fmat='caseBayesian_dx10_Ffat-none_ME0.mat';N=200001;caseTomo_metropolis
 
 %% Rejection
 clear all;fmat='caseBayesian_dx50_Ffat-none_ME0.mat';N=5000000;caseTomo_rejection
