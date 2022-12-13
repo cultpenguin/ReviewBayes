@@ -66,6 +66,7 @@ options.lsq.n_reals=150;
 %forward.type='ray';
 %forward.linear=1;
 options.txt=[txt,'_',forward.type];
+options.lsq.n_reals=500;
 [m_est,Cm_est,post_reals,options_1,data_1,prior_1,forward_1]=sippi_least_squares(data,prior,forward,options);
 
 clear prior_reals
