@@ -21,108 +21,102 @@ Nd=length(data{1}.d_obs);
 
 txt_h5=sprintf('%s_rejection_N%d_out',txt,N)
 h5=[txt_h5,'.h5'];
-%%
-clc
-delete(h5)
-%h5create('test.h5','/RJ/M',[ny nx N])
-h5create(h5,'/D',[Nd,N],'ChunkSize',[Nd,1])
-h5create(h5,'/M',[ny,nx,N],'ChunkSize',[ny nx 1])
-%m=sippi_prior(prior)
-%h5write(h5,'/M',m{1},[1,1,1],[ny,nx,1])
-%h5write(h5,'/M',m{1},[1,1,11],[ny,nx,1])
-%h5write(h5,'/D',data{1}.d_obs,[1,1],[Nd,1])
-%mydata = ones(ny,nx,N);
-%h5write('test.h5','/RJ/M',mydata)
-%h5disp(h5)
-%d5=h5read(h5,'/D');
-%m5=h5read(h5,'/M');
-%size(d5)
 
-%%
-% initialize
-[m,prior]=sippi_prior(prior);
-[d,forward]=sippi_forward(m,forward,prior);
-[~,~,data]=sippi_likelihood(d,data);
+if exist([txt_h5,'.mat'],'file')
+    load(txt_h5)
+else
+    %%
+    clc
+    delete(h5)
+    h5create(h5,'/D',[Nd,N],'ChunkSize',[Nd,1])
+    h5create(h5,'/M',[ny,nx,N],'ChunkSize',[ny nx 1])
 
-N_chunk = 50000;
-N_loop = ceil(N/N_chunk);
 
-logL=zeros(1,N);
-t_start=now;
-for ic = 1:N_loop
-    i_start = (ic-1)*N_chunk+1;
-    if ic==N_loop
-        i_end = N;
-    else
-        i_end = ic*N_chunk;
-    end
-    disp(sprintf('ic=%02d/%02d, %06d-%06d -- N_chunk=%d',ic,N_loop,i_start,i_end,N_chunk))
-    ii=i_start:1:i_end;
-    m_propose=rand(ny,nx,N_chunk);
-    d_propose=rand(Nd,N_chunk);
-    logL_propose=zeros(1,N_chunk);
-    
+    %%
+    % initialize
+    [m,prior]=sippi_prior(prior);
+    [d,forward]=sippi_forward(m,forward,prior);
+    [~,~,data]=sippi_likelihood(d,data);
 
-    
-    Nd_in_loop=(1+i_end-i_start);
-    parfor i=1:Nd_in_loop
-        if mod(i,100)==0,
-            [t_end_txt,t_left_seconds]=time_loop_end(t_start,i,Nd_in_loop);
-            [t_end_txt,t_left_seconds]=time_loop_end(t_start,ii(i),N);
-            progress_txt(ii(i),N,['Forward ',t_end_txt]);
+    N_chunk = 50000;
+    N_loop = ceil(N/N_chunk);
+
+    logL=zeros(1,N);
+    t_start=now;
+    for ic = 1:N_loop
+        i_start = (ic-1)*N_chunk+1;
+        if ic==N_loop
+            i_end = N;
+        else
+            i_end = ic*N_chunk;
         end
-        % sample prior;
-        m=sippi_prior(prior);
-        m_propose(:,:,i)=m{1};
-        % compute forward response
-        d=sippi_forward(m,forward,prior);
-        d_propose(:,i)=d{1};
-        % compute log-likelihood
-        logL_propose(i)=sippi_likelihood(d,data);
-    end
-    t_end = now;
-    t_elapsed_minutes=(t_end-t_start)*60*24;
+        disp(sprintf('ic=%02d/%02d, %06d-%06d -- N_chunk=%d',ic,N_loop,i_start,i_end,N_chunk))
+        ii=i_start:1:i_end;
+        m_propose=rand(ny,nx,N_chunk);
+        d_propose=rand(Nd,N_chunk);
+        logL_propose=zeros(1,N_chunk);
 
-    logL(i_start:1:i_end)=logL_propose(1:Nd_in_loop);
-    h5write(h5,'/M',m_propose(:,:,1:Nd_in_loop),[1,1,i_start],[ny,nx,Nd_in_loop])
-    h5write(h5,'/D',d_propose(:,1:Nd_in_loop),[1,i_start],[Nd,Nd_in_loop])
+
+
+        Nd_in_loop=(1+i_end-i_start);
+        parfor i=1:Nd_in_loop
+            if mod(i,100)==0,
+                [t_end_txt,t_left_seconds]=time_loop_end(t_start,i,Nd_in_loop);
+                [t_end_txt,t_left_seconds]=time_loop_end(t_start,ii(i),N);
+                progress_txt(ii(i),N,['Forward ',t_end_txt]);
+            end
+            % sample prior;
+            m=sippi_prior(prior);
+            m_propose(:,:,i)=m{1};
+            % compute forward response
+            d=sippi_forward(m,forward,prior);
+            d_propose(:,i)=d{1};
+            % compute log-likelihood
+            logL_propose(i)=sippi_likelihood(d,data);
+        end
+        t_end = now;
+        t_elapsed_minutes=(t_end-t_start)*60*24;
+
+        logL(i_start:1:i_end)=logL_propose(1:Nd_in_loop);
+        h5write(h5,'/M',m_propose(:,:,1:Nd_in_loop),[1,1,i_start],[ny,nx,Nd_in_loop])
+        h5write(h5,'/D',d_propose(:,1:Nd_in_loop),[1,i_start],[Nd,Nd_in_loop])
+
+    end
+
+    clear m_propose
+    clear d_propose
+
+
+    %logL(i_start:1:i_end)=logL_propose(1:Nd_in_loop);
+    %h5write(h5,'/M',m_propose(:,:,1:Nd_in_loop),[1,1,i_start],[ny,nx,Nd_in_loop])
+    %h5write(h5,'/D',d_propose(:,1:Nd_in_loop),[1,i_start],[Nd,Nd_in_loop])
+
+    disp(sprintf('Time to setup [M,D]: %4.3f minutes',t_elapsed_minutes))
+
+
+    %%
+    %d5=h5read(h5,'/D');
+    %m5=h5read(h5,'/M');
+    %% simulate noise (for ML and EnK)%
+    if doSimNoise==1
+        Ct = diag(data{1}.d_std) + data{1}.Ct;
+        try
+            t0 = data{1}.t0;
+        catch
+            t0 = 0
+        end
+        d_noise=gaussian_simulation_cholesky(t0,Ct,N);
+        d_sim=d_noise.*0;
+        for i=1:N;
+            d_sim(:,i)=d_propose(:,i)+d_noise(:,i);
+        end
+    end
+
+    if doSave==1
+        save(txt_h5)
+    end
 
 end
-
-clear m_propose
-clear d_propose
-
-
-%logL(i_start:1:i_end)=logL_propose(1:Nd_in_loop);
-%h5write(h5,'/M',m_propose(:,:,1:Nd_in_loop),[1,1,i_start],[ny,nx,Nd_in_loop])
-%h5write(h5,'/D',d_propose(:,1:Nd_in_loop),[1,i_start],[Nd,Nd_in_loop])
-
-disp(sprintf('Time to setup [M,D]: %4.3f minutes',t_elapsed_minutes))
-
-
-%%
-%d5=h5read(h5,'/D');
-%m5=h5read(h5,'/M');
-%% simulate noise (for ML and EnK)%
-if doSimNoise==1
-    Ct = diag(data{1}.d_std) + data{1}.Ct;
-    try
-        t0 = data{1}.t0;
-    catch
-        t0 = 0
-    end
-    d_noise=gaussian_simulation_cholesky(t0,Ct,N);
-    d_sim=d_noise.*0;
-    for i=1:N;
-        d_sim(:,i)=d_propose(:,i)+d_noise(:,i);
-    end
-end
-
-if doSave==1
-    save(txt_h5)
-end
-
-
 %% SAVE AS HDF5??
 
 %% Rejection
@@ -159,6 +153,8 @@ i_sample = find(Pacc>r);
 %m_post_big=m_propose_big(:,:,i_sample);
 for i=1:length(i_sample)
     m_post(:,:,i)=h5read(h5,'/M',[1 1 i_sample(i)],[ny nx 1]);
+    mm=m_post(:,:,i);
+    post_reals(i,:)=mm(:);
 end
 n_post=size(m_post,3);
 
@@ -167,6 +163,17 @@ n_post=size(m_post,3);
 txt_out = sprintf('%s_rejection_N%d_T%d',txt,N,T);
 disp(txt_out)
 
+%%
+
+%% sample prior
+clear prior_reals
+for i=1:10;
+    m=sippi_prior(prior);
+    prior_reals(i,:)=m{1}(:);
+end
+
+%% plot Post Stats
+caseTomo_plot_post_stats(post_reals,prior_reals,prior,txt_out);
 %%
 figure(10);clf;
 subplot(3,1,1)
@@ -179,6 +186,8 @@ subplot(3,1,3)
 semilogy(exp((1/T)*(logL-max(logL))),'-');ylim([1e-2 1])
 title(sprintf('T=%g',T))
 print_mul(sprintf('%s_anneal',txt_out))
+
+return
 
 %%
 nx=length(prior{1}.x);
@@ -217,7 +226,7 @@ for i=1:Nr
             title('\sigma(m)\rightarrowm^*')
         end
     end
-    
+
 end
 print_mul(sprintf('%s_post_sample',txt_out))
 
@@ -240,12 +249,12 @@ title('\sigma(m) - standard deviation')
 colorbar
 print_mul(sprintf('%s_post_mean_std',txt_out))
 
-%% 
+%%
 figure(14);set_paper('landscape')
 %try
 %    d_std = sqrt(diag(data{1}.CD));
 %catch
-    d_std = data{1}.d_std;
+d_std = data{1}.d_std;
 %end
 p1=plot(d_prior,'k-','LineWidth',4,'color',[1 1 1].*.5);
 hold on

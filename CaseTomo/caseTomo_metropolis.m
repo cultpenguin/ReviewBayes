@@ -10,70 +10,46 @@ if ~exist('doSave','var'); doSave=1; end
 if ~exist('rseed','var'); rseed=1;end
 if rseed>0; rng('default') ;rng(rseed);end
 
-
 %%
 load(fmat,'prior','forward','data','txt')
 
-%% SETUP METROPOLIS
-options.mcmc.nite=N;
-options.mcmc.i_plot=ceil(options.mcmc.nite/10);
-options.mcmc.n_reals=200;
-%i_sample=ceil(options.mcmc.nite/n_reals_out);
-randn('seed',2);rand('seed',2);
+txt_out = sprintf('%s_metropolis_N%d',txt,N);
+disp(txt_out)
+
+if exist([txt_out,'.mat'],'file')
+    load(txt_out)
+else
+
+    %% SETUP METROPOLIS
+    options.mcmc.nite=N;
+    options.mcmc.i_plot=ceil(options.mcmc.nite/10);
+    options.mcmc.n_reals=200;
+    %i_sample=ceil(options.mcmc.nite/n_reals_out);
+    randn('seed',2);rand('seed',2);
 
 
-options=sippi_metropolis(data,prior,forward,options);
+    options=sippi_metropolis(data,prior,forward,options);
 
-%%
-[reals,etype_mean,etype_var,reals_all,reals_ite]=sippi_get_sample(options.txt,1,100,1);
+    %%
+    [reals,etype_mean,etype_var,reals_all,reals_ite]=sippi_get_sample(options.txt,1,100,1);
 
-%%
-if doSave==1
-    save(sprintf('%s_metropolis_out',txt))
+    %%
+    if doSave==1
+        save(txt_out)
+    end
+
 end
 
-%% 
-
-nx=length(prior{1}.x);
-ny=length(prior{1}.y);
-
-dx=prior{1}.x(2)-prior{1}.x(1);
-
-Nr=5;
-
-figure(11);
-for i=1:Nr
-    subplot(3,Nr,i)
+%% sample prior
+clear prior_reals
+for i=1:10;
     m=sippi_prior(prior);
-    imagesc(prior{1}.x,prior{1}.y,m{1})
-    axis image
-    caxis(prior{1}.cax);colormap(prior{1}.cmap)
-    title('\rho(m)\rightarrowm^*')
+    prior_reals(i,:)=m{1}(:);
 end
-print_mul(sprintf('%s_N%d_prior_sample',txt,options.mcmc.nite))
-figure(12);
-for i=1:Nr
-    subplot(3,Nr,i)
-    m=sippi_prior(prior);
-    imagesc(prior{1}.x,prior{1}.y,reals(:,:,i))
-    axis image;caxis(prior{1}.cax);colormap(prior{1}.cmap)
-    title('\sigma(m)\rightarrowm^*')
-end
-print_mul(sprintf('%s_N%d_post_sample',txt,options.mcmc.nite))
 
-figure(13);clf
-subplot(1,2,1)
-imagesc(prior{1}.x,prior{1}.y,reshape(mean(reals_all),ny,nx))
-axis image;caxis(prior{1}.cax);colormap(prior{1}.cmap)
-colorbar
-title('\sigma(m) - mean')
-subplot(1,2,2)
-imagesc(prior{1}.x,prior{1}.y,reshape(std(reals_all),ny,nx))
-axis image;colormap(prior{1}.cmap)
-title('\sigma(m) - standard deviation')
-colorbar
-print_mul(sprintf('%s_N%d_post_mean_std',txt,options.mcmc.nite))
-    
+%% plot Post Stats
+caseTomo_plot_post_stats(reals_all,prior_reals,prior,txt_out);
+
 %%
 figure(15);clf
 plot(options.C{1}.mcmc.logL)
@@ -84,6 +60,6 @@ grid on
 xlabel('Iteration Number')
 ylabel('log(L(m))')
 ppp(12,8,10,2,2)
-print_mul(sprintf('%s_N%d_logL',txt,options.mcmc.nite))
+print_mul(sprintf('%s_logL',txt_out))
 
 

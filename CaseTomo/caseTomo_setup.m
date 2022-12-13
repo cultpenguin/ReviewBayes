@@ -70,17 +70,17 @@ m=sippi_prior(prior);
 
 comp_model_error=0;
 if comp_model_error==1;
-    
+
     % SETUP THE 'OPTIMAL' FORWARD MODEL
     forward_full.forward_function='sippi_forward_traveltime';
     forward_full.sources=D.S;
     forward_full.receivers=D.R;
     forward_full.type='fat';forward_full.linear=0;forward_full.freq=0.1;
-    
+
     % COMPUTE MODELING ERROR DUE TO USE OF forward AS OPPOSED TO forward_full
     Nme=600;
     [Ct,dt,dd]=sippi_compute_modelization_forward_error(forward_full,forward,prior,Nme);
-    
+
     % ASSIGN MODELING ERROR TO DATA
     for id=1:length(data);
         data{id}.dt=dt{id};
@@ -90,7 +90,7 @@ else
     forward_full.type='none';
 end
 
-% 
+%
 
 txt=sprintf('caseBayesian_dx%d_F%s-%s_ME%d',ceil(100*dx),forward.type,forward_full.type,comp_model_error);
 disp(txt)
@@ -118,7 +118,7 @@ try
     print_mul(sprintf('%s_%s',txt,'prior1Dmarg'))
 end
 
-%% 
+%%
 figure(10);
 subplot(1,5,1)
 for i=1:size(D.S,1)
@@ -133,47 +133,50 @@ print_mul(sprintf('%s_%s',txt,'SR'))
 print -dpng -r300 caseTomo_SR
 
 %% Frechet
-dv=0.0005;
-iray=10;
-if rseed>0; rng(rseed);end
-m_ref=sippi_prior(prior);
-d_ref=sippi_forward(m_ref,forward,prior);
-m_fre=zeros(length(prior{1}.y),length(prior{1}.x))
-for ix = 1:length(prior{1}.x);
-    progress_txt(ix,length(prior{1}.x),'X')
-parfor iy = 1:length(prior{1}.y);
-    m_test=m_ref;
-    m_test{1}(iy,ix)=m_ref{1}(iy,ix)+dv;
-    d_test=sippi_forward(m_test,forward,prior);
-    m_fre(iy,ix)= (d_ref{1}(iray)-d_test{1}(iray))/dv;
+doComputeFrechet=0;
+if doComputeFrechet==1;
+
+    dv=0.0005;
+    iray=10;
+    if rseed>0; rng(rseed);end
+    m_ref=sippi_prior(prior);
+    d_ref=sippi_forward(m_ref,forward,prior);
+    m_fre=zeros(length(prior{1}.y),length(prior{1}.x))
+    for ix = 1:length(prior{1}.x);
+        progress_txt(ix,length(prior{1}.x),'X')
+        parfor iy = 1:length(prior{1}.y);
+            m_test=m_ref;
+            m_test{1}(iy,ix)=m_ref{1}(iy,ix)+dv;
+            d_test=sippi_forward(m_test,forward,prior);
+            m_fre(iy,ix)= (d_ref{1}(iray)-d_test{1}(iray))/dv;
+        end
+    end
+
+    %%
+    figure(21);clf
+    subplot(1,2,1);
+    imagesc(prior{1}.x, prior{1}.y, m_ref{1});
+    axis image;
+    caxis(prior{1}.cax);colormap(gca,prior{1}.cmap)
+    title('Example velocity model')
+    subplot(1,2,2);
+    imagesc(prior{1}.x, prior{1}.y, m_fre);
+    colormap(gca,cmap_linear)
+    cax=caxis;
+    caxis([-1 1].*max(abs(cax)))
+    xlabel('X (m)');ylabel('Y (m)');
+    hold on;
+    plot(D.S(iray,1),D.S(iray,2),'r*','MarkerSize',10);
+    plot(D.R(iray,1),D.R(iray,2),'ro','MarkerSize',10)
+    hold off
+    axis image;
+    colorbar_shift;
+    title(sprintf('Frechét derivative [dd/dm]'))
+    print_mul(sprintf('%s_frechet_%s_L%d_SR%d',txt,forward.type,forward.linear,iray))
 end
-end
-
-%%
-figure(21);clf
-subplot(1,2,1);
-imagesc(prior{1}.x, prior{1}.y, m_ref{1});
-axis image;
-caxis(prior{1}.cax);colormap(gca,prior{1}.cmap)
-title('Example velocity model')
-subplot(1,2,2);
-imagesc(prior{1}.x, prior{1}.y, m_fre);
-colormap(gca,cmap_linear)
-cax=caxis;
-caxis([-1 1].*max(abs(cax)))
-xlabel('X (m)');ylabel('Y (m)');
-hold on;
-plot(D.S(iray,1),D.S(iray,2),'r*','MarkerSize',10);
-plot(D.R(iray,1),D.R(iray,2),'ro','MarkerSize',10)
-hold off
-axis image;
-colorbar_shift;
-title(sprintf('Frechét derivative [dd/dm]'))
-print_mul(sprintf('%s_frechet_%s_L%d_SR%d',txt,forward.type,forward.linear,iray))
 
 
 
 
-    
 
 
