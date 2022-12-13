@@ -30,7 +30,7 @@ clear all;fmat='caseBayesian_dx25_Feikonal-none_ME0.mat';N=200000;caseTomo_rejec
 %clear all;fmat='caseBayesian_dx25_Feikonal-none_ME0.mat';caseTomo_LeastSquares
 
 %% METROPOLIS
-%clear all;fmat='caseBayesian_dx25_Ffat-none_ME0.mat';N=200000;caseTomo_metropolis
+clear all;fmat='caseBayesian_dx25_Ffat-none_ME0.mat';N=200000;caseTomo_metropolis
 %clear all;fmat='caseBayesian_dx50_Ffat-none_ME0.mat';N=200000;caseTomo_metropolis
 %clear all;fmat='caseBayesian_dx10_Ffat-none_ME0.mat';N=200000;caseTomo_metropolis
 %clear all;fmat='caseBayesian_dx50_Feikonal-none_ME0.mat';N=200000;caseTomo_metropolis
