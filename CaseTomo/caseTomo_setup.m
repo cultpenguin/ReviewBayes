@@ -133,7 +133,7 @@ print_mul(sprintf('%s_%s',txt,'SR'))
 print -dpng -r300 caseTomo_SR
 
 %% Frechet
-doComputeFrechet=0;
+doComputeFrechet=1;
 if doComputeFrechet==1;
 
     dv=0.0005;
