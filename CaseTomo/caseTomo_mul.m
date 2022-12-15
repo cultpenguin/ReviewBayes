@@ -11,6 +11,8 @@ clear all;dx=0.25;forward.type='ray';caseTomo_setup
 clear all;dx=0.50;forward.type='ray';caseTomo_setup
 
 %%  small test
+clear all;fmat='caseTomo_Kallerup_dx25_Ffat-none_ME0.mat';caseTomo_LeastSquares
+%clear all;fmat='caseTomo_Kallerup_dx25_Ffat-none_ME0.mat';N=20000;caseTomo_metropolis
 %clear all;fmat='caseBayesian_dx25_Ffat-none_ME0.mat';N=20000;caseTomo_metropolis
 %clear all;fmat='caseBayesian_dx25_Ffat-none_ME0.mat';N=200000;caseTomo_rejection
 %clear all;fmat='caseBayesian_dx25_Ffat-none_ME0.mat';caseTomo_LeastSquares

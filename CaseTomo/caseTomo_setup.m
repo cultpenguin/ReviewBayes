@@ -1,23 +1,43 @@
-close all
+clear all;close all
 if ~exist('rseed','var');rseed=1;end
 if ~exist('dx','var')
     %dx=0.5;
     dx=0.25;
-    dx=0.1;
+    %dx=0.1;
 end
-
+if ~exist('useCase','var')
+    useCase='Kallerup';
+    %useCase='Arrenaes';
+end
 %%
-if rseed>0; rng(rseed);end
+if rseed>0; rng('default');rng(rseed);end
 forward.null=[];
 
-ax=[-1 6 0 13];
-
-cax=0.145+[-1 1].*.03;
 cmap=jet;
 
 % Load data
-D=load('AM13_data.mat');
-options.txt='AM13_bimodal';
+if strcmp(useCase,'Kallerup')
+    %D=kallerup_get_data();
+    options.txt='Kallerup_bimodal';
+    ax=[-1 4.5 0 8];
+    cax=0.145+[-1 1].*.03;
+    load('KallerupJensenOutput','data','ant_pos')
+    D.S=ant_pos(:,1:2);
+    D.R=ant_pos(:,3:4);
+    D.d_obs = data{1}.d_obs;
+    D.d_std = data{1}.d_std;
+    D.Ct = data{1}.Ct;
+    clear data
+else
+    D=load('AM13_data.mat');
+    options.txt='AM13_bimodal';
+    ax=[-1 6 0 13];
+    cax=[0.06 0.3];
+
+end
+
+
+
 
 %% SETUP DATA, PRIOR and FORWARD
 
@@ -29,29 +49,59 @@ data{id}.d_std=D.d_std;
 data{id}.Ct=D.Ct; % modelization and static error
 
 
+
 %% SETUP PRIOR
 
-% bimodal distribution
-Nd=10000;
-prob_chan=0.5;
-dd=.015;
-d1=randn(1,ceil(Nd*(1-prob_chan)))*.0045+0.145-dd;  %0.1125;
-d2=randn(1,ceil(Nd*(prob_chan)))*.0045+0.145+dd; %0.155;
-d=[d1(:);d2(:)];
-[d_nscore,o_nscore]=nscore(d,1,1,min(d),max(d),0);
-var0=var(d);
-m0=mean(d);
+if strcmp(useCase,'Kallerup')
+    load('KallerupJensenOutput','prior')
+    p = prior;
+    clear prior
 
-im=1;
-clear prior
-prior{im}.type='FFTMA';
-prior{im}.name='Velocity (m/ns)';
-prior{im}.Va=sprintf(sprintf('%5.4f Sph(6,90,.2)',var0));
-prior{im}.x=[-1:dx:6];
-prior{im}.y=[0:dx:13];
-prior{im}.cax=cax;
-prior{im}.cmap=cmap;
-prior{im}.o_nscore=o_nscore;
+    % Use velocity as prior
+    d = 1./p{1}.d_target;
+    [d_nscore,o_nscore]=nscore(d,1,1,min(d),max(d),0);
+    var0=var(d);
+    m0=mean(d);
+
+    im=1;
+    clear prior
+    prior{im}.type='FFTMA';
+    prior{im}.name='Velocity (m/ns)';
+    prior{im}.Va=sprintf(sprintf('%5.4f Sph(15,90,.1)',var0));
+    prior{im}.x=[ax(1):dx:ax(2)];
+    prior{im}.y=[ax(3):dx:ax(4)];
+    prior{im}.cax=cax;
+    prior{im}.cmap=cmap;
+    prior{im}.o_nscore=o_nscore;
+
+else
+
+    % bimodal distribution
+    Nd=10000;
+    prob_chan=0.5;
+    dd=.015;
+    d1=randn(1,ceil(Nd*(1-prob_chan)))*.0045+0.145-dd;  %0.1125;
+    d2=randn(1,ceil(Nd*(prob_chan)))*.0045+0.145+dd; %0.155;
+    d=[d1(:);d2(:)];
+    [d_nscore,o_nscore]=nscore(d,1,1,min(d),max(d),0);
+    var0=var(d);
+    m0=mean(d);
+
+    im=1;
+    clear prior
+    prior{im}.type='FFTMA';
+    prior{im}.name='Velocity (m/ns)';
+    prior{im}.Va=sprintf(sprintf('%5.4f Sph(6,90,.2)',var0));
+    %prior{im}.x=[-1:dx:6];
+    %prior{im}.y=[0:dx:13];
+    prior{im}.x=[ax(1):dx:ax(2)];
+    prior{im}.y=[ax(3):dx:ax(4)];
+
+    prior{im}.cax=cax;
+    prior{im}.cmap=cmap;
+    prior{im}.o_nscore=o_nscore;
+
+end
 
 %% SETUP THE FORWARD MODEL
 forward.linear_m=m0; % Needed when m0 is set to 0 (using target distribution, and forward.linear=1;)�
@@ -92,7 +142,7 @@ end
 
 %
 
-txt=sprintf('caseBayesian_dx%d_F%s-%s_ME%d',ceil(100*dx),forward.type,forward_full.type,comp_model_error);
+txt=sprintf('caseTomo_%s_dx%d_F%s-%s_ME%d',useCase,ceil(100*dx),forward.type,forward_full.type,comp_model_error);
 disp(txt)
 save(txt)
 
@@ -128,9 +178,19 @@ end
 hold off
 axis image
 axis(ax)
+set(gca,'ydir','reverse')
 xlabel('X (m)');ylabel('Y (m)')
 print_mul(sprintf('%s_%s',txt,'SR'))
 print -dpng -r300 caseTomo_SR
+
+%%
+m=sippi_prior(prior);
+d=sippi_forward(m,forward,prior,data);
+figure(8);clf;
+plot(data{1}.d_obs,'k-')
+hold on
+plot(d{1},'r-')
+hold off
 
 %% Frechet
 doComputeFrechet=0;
