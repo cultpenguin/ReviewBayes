@@ -75,6 +75,7 @@ for i=1:10;
     prior_reals(i,:)=m{1}(:);
 end
 
+%%
 txt_out=sprintf('%s_LSQ',txt);
 caseTomo_plot_post_stats(1./post_reals',1./prior_reals,prior_org,txt_out)
 

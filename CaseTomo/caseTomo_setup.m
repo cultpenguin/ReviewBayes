@@ -1,9 +1,12 @@
-clear all;close all
+close all
 if ~exist('rseed','var');rseed=1;end
 if ~exist('dx','var')
     %dx=0.5;
     dx=0.25;
     %dx=0.1;
+end
+if ~exist('doComputeFrechet','var')
+    doComputeFrechet=0;
 end
 if ~exist('useCase','var')
     useCase='Kallerup';
@@ -18,21 +21,22 @@ cmap=jet;
 % Load data
 if strcmp(useCase,'Kallerup')
     %D=kallerup_get_data();
-    options.txt='Kallerup_bimodal';
-    ax=[-1 4.5 0 8];
-    cax=0.145+[-1 1].*.03;
+    options.txt='Kallerup';
+    ax=[-.5 4.0 0 7];
+    cax=[0.07 0.23];
     load('KallerupJensenOutput','data','ant_pos')
     D.S=ant_pos(:,1:2);
     D.R=ant_pos(:,3:4);
     D.d_obs = data{1}.d_obs;
     D.d_std = data{1}.d_std;
     D.Ct = data{1}.Ct;
+    D.dt = data{1}.dt;
     clear data
 else
     D=load('AM13_data.mat');
     options.txt='AM13_bimodal';
     ax=[-1 6 0 13];
-    cax=[0.06 0.3];
+    cax=.145+[-1 1].*.03;
 
 end
 
@@ -47,32 +51,50 @@ data{id}.d_obs=D.d_obs;
 data{id}.d_std=D.d_std;
 %data{id}.i_use=[10:10:length(data{id}.d_obs)];
 data{id}.Ct=D.Ct; % modelization and static error
+if isfield(D,'dt');
+    data{id}.dt=D.dt; % modelization and static error
+end
 
 
 
 %% SETUP PRIOR
 
 if strcmp(useCase,'Kallerup')
-    load('KallerupJensenOutput','prior')
-    p = prior;
+    K=load('KallerupJensenOutput');
+    p = K.prior;
     clear prior
 
     % Use velocity as prior
-    d = 1./p{1}.d_target;
-    [d_nscore,o_nscore]=nscore(d,1,1,min(d),max(d),0);
+    d_target_eps = p{1}.d_target;
+    d_target_vel= (sqrt(K.c0.^2./d_target_eps)*10^-9);
+    d=d_target_vel;
+    n=9000;
+        
+    useAltHigh=1;
+    if useAltHigh==1;
+        v1=d(d<0.1);
+        v2=d(d>0.1);
+        v2a=randn(n,1)*1.5*std(v2)+0.18;
+        d=[v1;v2a];
+    end    
+    
     var0=var(d);
     m0=mean(d);
+    %d=randn(2*n,1)*sqrt(var0)+m0;d(d<0.02)=0.02;
 
+    [d_nscore,o_nscore]=nscore(d,1,1,min(d),max(d),0);
     im=1;
     clear prior
+    prior{im}.d_target=d;
+    prior{im}.o_nscore=o_nscore;
     prior{im}.type='FFTMA';
     prior{im}.name='Velocity (m/ns)';
     prior{im}.Va=sprintf(sprintf('%5.4f Sph(15,90,.1)',var0));
+    %prior{im}.Va=sprintf(sprintf('%5.4f Sph(5,90,.3)',var0));
     prior{im}.x=[ax(1):dx:ax(2)];
     prior{im}.y=[ax(3):dx:ax(4)];
     prior{im}.cax=cax;
     prior{im}.cmap=cmap;
-    prior{im}.o_nscore=o_nscore;
 
 else
 
@@ -89,6 +111,7 @@ else
 
     im=1;
     clear prior
+    prior{im}.d_target=d;
     prior{im}.type='FFTMA';
     prior{im}.name='Velocity (m/ns)';
     prior{im}.Va=sprintf(sprintf('%5.4f Sph(6,90,.2)',var0));
@@ -148,7 +171,7 @@ save(txt)
 
 %%
 figure(1)
-if rseed>0; rng(rseed);end
+if rseed>0; rng('default');rng(rseed);end
 for i=1:5;
     subplot(1,5,i);
     m=sippi_prior(prior);
@@ -159,41 +182,80 @@ for i=1:5;
     xlabel('X (m)')
     if i==1,    ylabel('Y (m)');end
 end
-print -dpng -r300 caseTomo_priorsample
+cb=colorbar_shift;
+set(get(cb,'Ylabel'),'String','Velocity (m/ns)')
+print_mul(sprintf('%s_%s',txt,'priorsample'))
 
 try
     figure;
-    histogram(prior{1}.o_nscore.d)
+    histogram(prior{1}.o_nscore.d,linspace(cax(1),cax(2),31),'Normalization','Probability');
     xlabel('Velocity (m/\mus)')
+    ylabel('Probability')
+    grid on
     print_mul(sprintf('%s_%s',txt,'prior1Dmarg'))
 end
 
 %%
-figure(10);
-subplot(1,5,1)
+%m=sippi_prior(prior);
+d=sippi_forward(m,forward,prior,data);
+figure(8);clf;
+%subplot(1,2,1)
+%imagesc(prior{1}.x,prior{1}.y,m{1});
+%caxis(cax);colormap(cmap)
+%axis image
+%axis(ax)
+%xlabel('X (m)')
+%ylabel('Y (m)')
+%
+%subplot(1,2,2)
+plot(data{1}.d_obs,'k-','LineWidth',1.5)
+hold on
+plot(d{1},'r-','LineWidth',1)
+hold off
+xlabel('Data #')
+ylabel('travel time (ns)')
+grid on
+legend({'d_{obs}','g(m)'})
+print_mul(sprintf('%s_%s',txt,'_forward'))
+
+
+
+%% 'ray' Coverage
 for i=1:size(D.S,1)
-    plot([D.S(i,1),D.R(i,1)],[D.S(i,2),D.R(i,2)],'ko-','LineWidth',.1,'MarkerSize',1)
-    hold on
+    dis(i)=edist(D.S(i,:),D.R(i,:));
+    vapp(i)=dis(i)./data{1}.d_obs(i);
 end
+figure(9);clf
+plot(D.S(:,1),D.S(:,2),'k.')
+hold on
+plot(D.R(:,1),D.R(:,2),'k.')
+colormap(gca,cmap);caxis(cax);
+cb=colorbar;
+set(get(cb,'Ylabel'),'String','Velocity (m/ns)')
+
+
+for i=1:size(D.S,1)
+    %icol=ceil(interp1([cax],[1 size(cmap,1)],vapp(i),'nearest'))
+    icol(i)=ceil(interp1([cax],[1 size(cmap,1)],vapp(i),'linear','extrap'));
+    if vapp(i)<cax(1);icol(i)=1;end
+    if vapp(i)>cax(2);icol(i)=size(cmap,1);end
+    lw=2*(vapp-0.1)./(0.1);
+    lw(lw<0.01)=0.01;
+    plot([D.S(i,1),D.R(i,1)],[D.S(i,2),D.R(i,2)],'-','LineWidth',lw(i),'MarkerSize',1,'Color',cmap(icol(i),:))
+    %plot([D.S(i,1),D.R(i,1)],[D.S(i,2),D.R(i,2)],'-','LineWidth',.1)
+end
+grid on
 hold off
 axis image
 axis(ax)
 set(gca,'ydir','reverse')
-xlabel('X (m)');ylabel('Y (m)')
-print_mul(sprintf('%s_%s',txt,'SR'))
-print -dpng -r300 caseTomo_SR
+print_mul(sprintf('%s_%s',txt,'vapp'))
 
-%%
-m=sippi_prior(prior);
-d=sippi_forward(m,forward,prior,data);
-figure(8);clf;
-plot(data{1}.d_obs,'k-')
-hold on
-plot(d{1},'r-')
-hold off
+
+
+
 
 %% Frechet
-doComputeFrechet=1;
 if doComputeFrechet==1;
 
     dv=0.0005;

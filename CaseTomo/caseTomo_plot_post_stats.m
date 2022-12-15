@@ -18,22 +18,25 @@ Nr=5;
 % plot posterior stats
 figure(11);
 for i=1:Nr
-    subplot(3,Nr,i)
+    subplot(1,Nr,i)
     imagesc(x,y,reshape(prior_reals(i,:),ny,nx))
     axis image
     caxis(prior{1}.cax);colormap(prior{1}.cmap)
     title('\rho(m)\rightarrowm^*')
 end
+colorbar_shift;
 print_mul(sprintf('%s_prior_sample',txt_out))
+
 figure(12);
 i_plot = ceil(linspace(1,size(post_reals,1),Nr));
 for i=1:Nr
-    subplot(3,Nr,i)
+    subplot(1,Nr,i)
     m=sippi_prior(prior);
     imagesc(x,y,reshape(post_reals(i_plot(i),:),ny,nx))
     axis image;caxis(prior{1}.cax);colormap(prior{1}.cmap)
     title('\sigma(m)\rightarrowm^*')
 end
+colorbar_shift;
 print_mul(sprintf('%s_post_sample',txt_out))
 
 
@@ -72,7 +75,7 @@ figure(14);clf
 wb=2;
 Abin=[4.5:wb:40.5];
 Ac=(Abin(2:end)+Abin(1:end-1))/2;
-h=histogram(A,Abin)
+h=histogram(A,Abin);
 Apdf=h.Values;
 Apdf=Apdf/(wb*sum(Apdf));
 bar(Ac,Apdf)

@@ -22,11 +22,22 @@ else
 
     %% SETUP METROPOLIS
     options.mcmc.nite=N;
+    n1=ceil(N/10);
     options.mcmc.i_plot=ceil(options.mcmc.nite/10);
+    options.mcmc.i_plot=ceil(options.mcmc.nite/50);
     options.mcmc.n_reals=200;
     %i_sample=ceil(options.mcmc.nite/n_reals_out);
     randn('seed',2);rand('seed',2);
-
+    %options.mcmc.T=1;
+    for ip=1:length(prior)
+        prior{ip}.seq_gibbs.i_update_step_max=2*n1;
+    end
+    % ANNEALING (TEMPERATURE AS A FUNCTION OF ITERATION NUMBER)
+    options.mcmc.anneal.i_begin=1; % default, iteration number when annealing begins
+    options.mcmc.anneal.i_end=n1; %  iteration number when annealing stops
+    options.mcmc.anneal.T_begin=25; % Start temperature for annealing
+    options.mcmc.anneal.T_end=5; % End temperature for annealing
+    
 
     options=sippi_metropolis(data,prior,forward,options);
 
