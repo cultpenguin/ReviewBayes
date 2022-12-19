@@ -20,17 +20,23 @@ cmap=jet;
 
 % Load data
 if strcmp(useCase,'Kallerup')
-    %D=kallerup_get_data();
+    K=load('KallerupJensenOutput');
     options.txt='Kallerup';
     ax=[-.5 4.0 0 7];
-    cax=[0.07 0.23];
-    load('KallerupJensenOutput','data','ant_pos')
-    D.S=ant_pos(:,1:2);
-    D.R=ant_pos(:,3:4);
-    D.d_obs = data{1}.d_obs;
-    D.d_std = data{1}.d_std;
-    D.Ct = data{1}.Ct;
-    D.dt = data{1}.dt;
+    cax=[0.07 0.18];
+    D.S=K.ant_pos(:,1:2);
+    D.R=K.ant_pos(:,3:4);
+    D.d_obs = K.data{1}.d_obs;
+    D.d_std = K.data{1}.d_std;
+    D.Ct = K.data{1}.Ct;
+    D.dt = K.data{1}.dt;
+    D.Ct = K.data{1}.CD;
+    addExtra=1;
+    if addExtra==1
+        D.Ct=D.Ct+4;
+    end
+
+    %D.dt = K.data{1}.dD;
     clear data
 else
     D=load('AM13_data.mat');
@@ -60,7 +66,7 @@ end
 %% SETUP PRIOR
 
 if strcmp(useCase,'Kallerup')
-    K=load('KallerupJensenOutput');
+
     p = K.prior;
     clear prior
 
@@ -69,15 +75,15 @@ if strcmp(useCase,'Kallerup')
     d_target_vel= (sqrt(K.c0.^2./d_target_eps)*10^-9);
     d=d_target_vel;
     n=9000;
-        
-    useAltHigh=1;
+
+    useAltHigh=0;
     if useAltHigh==1;
         v1=d(d<0.1);
         v2=d(d>0.1);
         v2a=randn(n,1)*1.5*std(v2)+0.18;
         d=[v1;v2a];
-    end    
-    
+    end
+
     var0=var(d);
     m0=mean(d);
     %d=randn(2*n,1)*sqrt(var0)+m0;d(d<0.02)=0.02;
@@ -133,6 +139,7 @@ forward.receivers=D.R;
 if ~isfield(forward,'type');
     forward.type='eikonal';
     forward.type='fat';
+    forward.type='ray';
 end
 if ~isfield(forward,'linear'); forward.linear=1;end
 if ~isfield(forward,'freq'); forward.freq=0.1;end

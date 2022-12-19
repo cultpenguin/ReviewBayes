@@ -7,7 +7,7 @@ if ~exist('N','var');
     N = ceil(300000/32);
 end
 if ~exist('doSave','var'); doSave=1; end
-if ~exist('doSimNoise','var'); doSimNoise=0; end
+if ~exist('doSimNoise','var'); doSimNoise=1; end
 if ~exist('rseed','var'); rseed=1;end
 if rseed>0; rng('default');rng(rseed);end
 
@@ -29,8 +29,23 @@ else
     clc
     delete(h5)
     h5create(h5,'/D',[Nd,N],'ChunkSize',[Nd,1])
+    h5create(h5,'/Dsim',[Nd,N],'ChunkSize',[Nd,1])
     h5create(h5,'/M',[ny,nx,N],'ChunkSize',[ny nx 1])
 
+    if doSimNoise==1
+        try
+            Ct = data{1}.Ct;
+        catch
+            Ct = diag(data{1}.d_std);
+        end
+        try
+            dt = data{1}.dt;
+        catch
+            dt = 0;
+        end
+        % get choleskey
+        [~,~,Ct_chol]=gaussian_simulation_cholesky(dt,Ct,1);
+    end
 
     %%
     % initialize
@@ -55,7 +70,8 @@ else
         m_propose=rand(ny,nx,N_chunk);
         d_propose=rand(Nd,N_chunk);
         logL_propose=zeros(1,N_chunk);
-
+        d_sim=rand(Nd,N_chunk);
+        
 
 
         Nd_in_loop=(1+i_end-i_start);
@@ -73,13 +89,21 @@ else
             d_propose(:,i)=d{1};
             % compute log-likelihood
             logL_propose(i)=sippi_likelihood(d,data);
+
+            if doSimNoise==1
+                %d_noise=gaussian_simulation_cholesky(dt,Ct,1);
+                is_cholesky=1;
+                d_noise=gaussian_simulation_cholesky(dt,Ct_chol,1,is_cholesky);
+                d_sim(:,i)=d_propose(:,i)+d_noise(:);
+            end            
         end
         t_end = now;
         t_elapsed_minutes=(t_end-t_start)*60*24;
-
+        disp(sprintf('Time to setup [M,D]_[%d/%d]: %4.3f minutes',i_end,N,t_elapsed_minutes))
         logL(i_start:1:i_end)=logL_propose(1:Nd_in_loop);
         h5write(h5,'/M',m_propose(:,:,1:Nd_in_loop),[1,1,i_start],[ny,nx,Nd_in_loop])
         h5write(h5,'/D',d_propose(:,1:Nd_in_loop),[1,i_start],[Nd,Nd_in_loop])
+        h5write(h5,'/Dsim',d_sim(:,1:Nd_in_loop),[1,i_start],[Nd,Nd_in_loop])
 
     end
 
@@ -98,19 +122,7 @@ else
     %d5=h5read(h5,'/D');
     %m5=h5read(h5,'/M');
     %% simulate noise (for ML and EnK)%
-    if doSimNoise==1
-        Ct = diag(data{1}.d_std) + data{1}.Ct;
-        try
-            t0 = data{1}.t0;
-        catch
-            t0 = 0
-        end
-        d_noise=gaussian_simulation_cholesky(t0,Ct,N);
-        d_sim=d_noise.*0;
-        for i=1:N;
-            d_sim(:,i)=d_propose(:,i)+d_noise(:,i);
-        end
-    end
+    
 
     if doSave==1
         save(txt_h5)

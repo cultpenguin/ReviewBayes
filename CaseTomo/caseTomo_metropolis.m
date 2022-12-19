@@ -7,6 +7,7 @@ if ~exist('N','var');
     N = ceil(300000/32);
 end
 if ~exist('doSave','var'); doSave=1; end
+if ~exist('T_end','var'); T_end=1; end
 if ~exist('rseed','var'); rseed=1;end
 if rseed>0; rng('default') ;rng(rseed);end
 
@@ -36,7 +37,7 @@ else
     options.mcmc.anneal.i_begin=1; % default, iteration number when annealing begins
     options.mcmc.anneal.i_end=n1; %  iteration number when annealing stops
     options.mcmc.anneal.T_begin=25; % Start temperature for annealing
-    options.mcmc.anneal.T_end=5; % End temperature for annealing
+    options.mcmc.anneal.T_end=T_end; % End temperature for annealing
     
 
     options=sippi_metropolis(data,prior,forward,options);
