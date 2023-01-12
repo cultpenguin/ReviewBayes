@@ -34,7 +34,7 @@ else
         load(txt_out_nn,'ABC')
     else
         ABC.useParfor=1;
-        ABC.simulate_noise=1;ABC.data=1; % We need to simulate NOISE
+        ABC.simulate_noise=1;ABC.data=data; % We need to simulate NOISE
         
         ABC=sippi_abc_setup(prior,forward,N,Nme,ABC);
         save(txt_out_nn,'ABC')
@@ -42,11 +42,20 @@ else
 
 end
 
+% get m{2}:AREA and m{3};P(v<vmax)
+dx=prior{1}.x(2)-prior{1}.x(1);
+for i=1:N
+    [P,A,vmax]=caseTomo_reals_to_P_area(ABC.m{1}{1}(:)',dx);
+    
+    ABC.m{i}{2}=A;
+    ABC.m{i}{3}=ABC.m{i}{1}<vmax;
+end
 
-% Simulate a 
+%% Export to hdf5
+[h5file,M,D,Dobs]=sippi_abc_to_h5(ABC,txt_out);
 
 
-%%
+%% VELOCITY
 ml.type = 'regression';
 ml.hidden_layers = 2;
 ml.hidden_units = 100;
@@ -54,6 +63,8 @@ ml.use_log = 0;
 ml.MiniBatchSize=4*128;
 ml.MaxIteNotImproving=10;
 ml.normalize=1; % normalize data
+ml.id=2; % noise data
+ml.im=1; % velocity
 [net,ml,ABC]=sippi_abc_ml_setup(ABC,ml);
 %%
 D=data{1}.d_obs;
@@ -72,3 +83,34 @@ title('\sigma(m) - mean')
 print_mul(sprintf('%s_post_mean',txt_out))
 
 
+%% AREA
+iml=2;
+ml.type = 'regression';
+ml.hidden_layers = 2;
+ml.hidden_units = 100;
+ml.use_log = 0;
+ml.MiniBatchSize=4*128;
+ml.MaxIteNotImproving=10;
+ml.normalize=1; % normalize data
+ml.id=2; % noise data
+ml.im=iml; % AREA
+[net,ml,ABC]=sippi_abc_ml_setup(ABC,ml);
+D=data{1}.d_obs;
+A_est=sippi_abc_ml_predict(ABC,D,iml);
+
+
+return
+%% PROBABILITY
+iml=3;
+ml.type = 'classification';
+ml.hidden_layers = 2;
+ml.hidden_units = 100;
+ml.use_log = 0;
+ml.MiniBatchSize=4*128;
+ml.MaxIteNotImproving=10;
+ml.normalize=1; % normalize data
+ml.id=2; % noise data
+ml.im=iml; % 
+[net,ml,ABC]=sippi_abc_ml_setup(ABC,ml);
+D=data{1}.d_obs;
+M_est=sippi_abc_ml_predict(ABC,D,iml);
