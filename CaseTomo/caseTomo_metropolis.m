@@ -39,7 +39,7 @@ else
     options.mcmc.anneal.T_begin=25; % Start temperature for annealing
     options.mcmc.anneal.T_end=T_end; % End temperature for annealing
     
-
+    try;options.txt=txt;end;
     options=sippi_metropolis(data,prior,forward,options);
 
     %%

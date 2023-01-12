@@ -57,8 +57,10 @@ print_mul(sprintf('%s_post_mean_std',txt_out))
     
 
 %%
-vmax=0.13;
-P=mean(post_reals<vmax);
+[P,A,vmax]=caseTomo_reals_to_P_area(post_reals,dx);
+
+%vmax=0.13;
+%P=mean(post_reals<vmax);
 subplot(1,3,3)
 imagesc(prior{1}.x,prior{1}.y,reshape(P,ny,nx))
 axis image;colormap(gca,flipud(hot))
@@ -68,8 +70,8 @@ colorbar
 print_mul(sprintf('%s_post_mean_std_P',txt_out))
 
 %% Area where V<vmax
-Apixel=(post_reals<vmax).*(dx*dx);
-A=sum(Apixel,2);
+%Apixel=(post_reals<vmax).*(dx*dx);
+%A=sum(Apixel,2);
 Amedian=median(A);
 figure(14);clf
 wb=2;
