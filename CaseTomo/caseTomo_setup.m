@@ -20,7 +20,8 @@ cmap=jet;
 
 % Load data
 if strcmp(useCase,'Kallerup')
-    K=load('KallerupJensenOutput');
+    %K=load('KallerupJensenOutput');
+    K=load('KallerupJensenOutput','ant_pos','data','prior','c0');
     options.txt='Kallerup';
     ax=[-.5 4.0 0 7];
     cax=[0.07 0.18];
