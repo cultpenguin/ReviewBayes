@@ -9,6 +9,7 @@
 ## Set paths in Matlab
 
     addpath sippi
+    addpath mgstat
     addpath sippi-abc
     sippi_set_path
     
