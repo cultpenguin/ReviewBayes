@@ -1,7 +1,6 @@
 clear all;useCase='Kallerup';dx=0.25;forward.type='eikonal';caseTomo_setup
-%clear all;fmat='caseTomo_Kallerup_dx25_Feikonal-none_ME0.mat';N=200001;ml.normalize=1;caseTomo_lookup
-clear all;
-fmat='caseTomo_Kallerup_dx25_Feikonal-none_ME0.mat';N=200001;ml.normalize=1;caseTomo_lookup_ml
+%clear all;fmat='caseTomo_Kallerup_dx25_Feikonal-none_ME0.mat';N=200002;ml.normalize=1;caseTomo_lookup
+clear all;fmat='caseTomo_Kallerup_dx25_Feikonal-none_ME0.mat';N=200002;ml.normalize=1;caseTomo_lookup_ml
 return
 %%
 clear all;useCase='Kallerup';dx=0.25;forward.type='ray';caseTomo_setup
