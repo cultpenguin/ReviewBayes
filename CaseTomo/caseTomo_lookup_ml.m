@@ -21,26 +21,21 @@ if ~isfield(prior{1},'cax_std');prior{1}.cax_std=[0 0.02];end
 if ~isfield(prior{1},'cmap');prior{1}.cmap=jet;end
 
 
-txt_out = sprintf('%s_lu_N%d',txt,N);
+txt_out = sprintf('%s_lu_noise_N%d',txt,N);
 disp(txt_out)
 
-%if exist([txt_out,'.mat'],'file')
-%    load(txt_out)
-%else
-    
-    txt_out_nn=sprintf('%s_lu_noise',txt_out);
-    if exist([txt_out_nn,'.mat'],'file')
-        disp(sprintf('Loading %s',txt_out_nn))
-        load(txt_out_nn,'ABC')
-    else
-        ABC.useParfor=1;
-        ABC.simulate_noise=1;ABC.data=data; % We need to simulate NOISE
-        
-        ABC=sippi_abc_setup(prior,forward,N,Nme,ABC);
-        save(txt_out_nn,'ABC','-v7.3')
-    end
 
-%end
+if exist([txt_out,'.mat'],'file')
+    disp(sprintf('Loading %s',txt_out))
+    load(txt_out,'ABC')
+else
+    ABC.useParfor=1;
+    ABC.simulate_noise=1;ABC.data=data; % We need to simulate NOISE
+    
+    ABC=sippi_abc_setup(prior,forward,N,Nme,ABC);
+    save(txt_out,'ABC','-v7.3')
+end
+
 
 % get m{2}:AREA and m{3};P(v<vmax)
 dx=prior{1}.x(2)-prior{1}.x(1);
@@ -57,14 +52,18 @@ end
 
 %% VELOCITY
 ml.type = 'regression';
-ml.hidden_layers = 2;
-ml.hidden_units = 100;
+ml.hidden_layers = 6;
+ml.hidden_units = 40;
 ml.use_log = 0;
 ml.MiniBatchSize=4*128;
 ml.MaxIteNotImproving=10;
+ml.ExecutionEnvironment = 'cpu';
 ml.normalize=1; % normalize data
-ml.id=2; % noise data
+ml.id=1; % noise data
 ml.im=1; % velocity
+ml.Plots = 'training-progress';
+ml.Plots = 'none';
+
 [net,ml,ABC]=sippi_abc_ml_setup(ABC,ml);
 %%
 D=data{1}.d_obs;
@@ -76,10 +75,10 @@ m_est=reshape(M_est,length(y),length(x));
 figure(41);clf
 subplot(1,3,1)
 imagesc(x,y,m_est)
-colormap(prior{1}.cmap)
-caxis(prior{1}.cax)
-axis image
+axis image;colormap(prior{1}.cmap)
+caxis(prior{1}.cax_std)
 title('\sigma(m) - mean')
+colorbar
 print_mul(sprintf('%s_post_mean',txt_out))
 
 

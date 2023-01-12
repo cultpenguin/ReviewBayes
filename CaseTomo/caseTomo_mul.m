@@ -1,6 +1,6 @@
 %clear all;useCase='Kallerup';dx=0.25;forward.type='eikonal';caseTomo_setup
-clear all;fmat='caseTomo_Kallerup_dx25_Feikonal-none_ME0.mat';N=500003;ml.normalize=1;caseTomo_lookup
-clear all;fmat='caseTomo_Kallerup_dx25_Feikonal-none_ME0.mat';N=500003;ml.normalize=1;caseTomo_lookup_ml
+%clear all;fmat='caseTomo_Kallerup_dx25_Feikonal-none_ME0.mat';N=500000;ml.normalize=1;caseTomo_lookup
+clear all;fmat='caseTomo_Kallerup_dx25_Feikonal-none_ME0.mat';N=500000;ml.normalize=1;caseTomo_lookup_ml
 return
 %%
 clear all;useCase='Kallerup';dx=0.25;forward.type='ray';caseTomo_setup
@@ -12,8 +12,8 @@ clear all;fmat='caseTomo_Kallerup_dx25_Fray-none_ME0.mat';N=250001;caseTomo_metr
 clear all;useCase='Kallerup';dx=0.10;forward.type='ray';caseTomo_setup
 clear all;useCase='Kallerup';dx=0.10;forward.type='eikonal';caseTomo_setup
 clear all;fmat='caseTomo_Kallerup_dx10_Fray-none_ME0.mat';caseTomo_LeastSquares
-clear all;fmat='caseTomo_Kallerup_dx10_Fray-none_ME0.mat';N=250001;caseTomo_metropolis
-clear all;fmat='caseTomo_Kallerup_dx10_Feikonal-none_ME0.mat';N=250001;caseTomo_metropolis
+clear all;fmat='caseTomo_Kallerup_dx10_Fray-none_ME0.mat';N=500000;caseTomo_metropolis
+clear all;fmat='caseTomo_Kallerup_dx10_Feikonal-none_ME0.mat';N=500000;caseTomo_metropolis
 return
 
 %% Setup 
