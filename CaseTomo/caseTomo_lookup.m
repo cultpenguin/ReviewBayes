@@ -30,14 +30,12 @@ else
         load(txt_out_nn,'ABC')
     else
         ABC=sippi_abc_setup(prior,forward,N,Nme);
-        save(txt_out_nn,'ABC')
+        save(txt_out_nn,'ABC','-v7.3')
     end
     ns=200;
     [logL,evidence,T_est,ABC,dt,iCT]=sippi_abc_logl(ABC,data);
     [m_real, P_acc, i_use_all, d_real] = sippi_abc_post_sample(ABC, ns, T_est, logL);
     reals_all = m_real{1}';
-    
-
 end
 %% sample prior
 clear prior_reals

@@ -24,11 +24,11 @@ if ~isfield(prior{1},'cmap');prior{1}.cmap=jet;end
 txt_out = sprintf('%s_lu_N%d',txt,N);
 disp(txt_out)
 
-if exist([txt_out,'.mat'],'file')
-    load(txt_out)
-else
+%if exist([txt_out,'.mat'],'file')
+%    load(txt_out)
+%else
     
-    txt_out_nn=sprintf('%s_lu',txt_out);
+    txt_out_nn=sprintf('%s_lu_noise',txt_out);
     if exist([txt_out_nn,'.mat'],'file')
         disp(sprintf('Loading %s',txt_out_nn))
         load(txt_out_nn,'ABC')
@@ -37,10 +37,10 @@ else
         ABC.simulate_noise=1;ABC.data=data; % We need to simulate NOISE
         
         ABC=sippi_abc_setup(prior,forward,N,Nme,ABC);
-        save(txt_out_nn,'ABC')
+        save(txt_out_nn,'ABC','-v7.3')
     end
 
-end
+%end
 
 % get m{2}:AREA and m{3};P(v<vmax)
 dx=prior{1}.x(2)-prior{1}.x(1);
