@@ -47,7 +47,6 @@ caseTomo_Kallerup_dx25_Feikonal-none_ME0_lu_N200001.h5, as
     ABC.d{i}{1} : traveltime for model 1
     ABC.d{i}{2} : traveltime WITH noise for model 1
     
-    
     x=prior{1}.x
     y=prior{1}.y
 
