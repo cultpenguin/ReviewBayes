@@ -7,6 +7,16 @@ clear all;fmat='caseTomo_Kallerup_dx25_Feikonal-none_ME0.mat';N=500000;ml.normal
 clear all;fmat='caseTomo_Kallerup_dx25_Feikonal-none_ME0.mat';N=500000;ml.normalize=1;di_use=1;caseTomo_lookup
 clear all;fmat='caseTomo_Kallerup_dx25_Feikonal-none_ME0.mat';N=500000;ml.normalize=1;di_use=1;caseTomo_lookup_ml
 
+clear all;useCase='Kallerup';dx=0.10;forward.type='eikonal';caseTomo_setup
+clear all;fmat='caseTomo_Kallerup_dx10_Feikonal-none_ME0.mat';N=500000;ml.normalize=1;di_use=20;caseTomo_metropolis
+clear all;fmat='caseTomo_Kallerup_dx10_Feikonal-none_ME0.mat';N=500000;ml.normalize=1;di_use=20;caseTomo_rejection
+clear all;fmat='caseTomo_Kallerup_dx10_Feikonal-none_ME0.mat';N=500000;ml.normalize=1;di_use=1;caseTomo_metropolis
+clear all;fmat='caseTomo_Kallerup_dx10_Feikonal-none_ME0.mat';N=500000;ml.normalize=1;di_use=1;caseTomo_rejection
+clear all;fmat='caseTomo_Kallerup_dx10_Feikonal-none_ME0.mat';N=500000;ml.normalize=1;di_use=1;caseTomo_lookup
+clear all;fmat='caseTomo_Kallerup_dx10_Feikonal-none_ME0.mat';N=500000;ml.normalize=1;di_use=1;caseTomo_lookup_ml
+
+
+
 return
 
 % Using Linear Least SQuares : Make sure a linear forward operatir exist...
