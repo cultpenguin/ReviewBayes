@@ -9,12 +9,16 @@ end
 if ~exist('doSave','var'); doSave=1; end
 if ~exist('T_end','var'); T_end=1; end
 if ~exist('rseed','var'); rseed=1;end
+if ~exist('di_use','var'); di_use=1; end
 if rseed>0; rng('default') ;rng(rseed);end
 
 %%
 load(fmat,'prior','forward','data','txt')
+if di_use>1
+    data{1}.i_use = 1:di_use:length(data{1}.d_obs);
+end
 
-txt_out = sprintf('%s_metropolis_N%d',txt,N);
+txt_out = sprintf('%s_metropolis_N%d_di%d',txt,N,di_use);
 disp(txt_out)
 
 if exist([txt_out,'.mat'],'file')

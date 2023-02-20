@@ -9,17 +9,21 @@ end
 if ~exist('doSave','var'); doSave=1; end
 if ~exist('doSimNoise','var'); doSimNoise=1; end
 if ~exist('rseed','var'); rseed=1;end
+if ~exist('di_use','var'); di_use=1; end
 if rseed>0; rng('default');rng(rseed);end
 
 
 %%
 load(fmat,'prior','forward','data','txt')
-
+Nd=length(data{1}.d_obs);
+if di_use>1
+    data{1}.i_use = 1:di_use:length(data{1}.d_obs);
+    Nd=length(data{1}.i_use);
+end
 nx=length(prior{1}.x);
 ny=length(prior{1}.y);
-Nd=length(data{1}.d_obs);
 
-txt_h5=sprintf('%s_rejection_N%d_out',txt,N)
+txt_h5=sprintf('%s_rejection_N%d_di%d_out',txt,N,di_use)
 h5=[txt_h5,'.h5'];
 
 if exist([txt_h5,'.mat'],'file')
@@ -50,7 +54,7 @@ else
     %%
     % initialize
     [m,prior]=sippi_prior(prior);
-    [d,forward]=sippi_forward(m,forward,prior);
+    [d,forward]=sippi_forward(m,forward,prior,data);
     [~,~,data]=sippi_likelihood(d,data);
 
     N_chunk = 50000;
@@ -75,6 +79,7 @@ else
 
 
         Nd_in_loop=(1+i_end-i_start);
+        %for i=1:Nd_in_loop
         parfor i=1:Nd_in_loop
             if mod(i,100)==0,
                 [t_end_txt,t_left_seconds]=time_loop_end(t_start,i,Nd_in_loop);
@@ -85,7 +90,7 @@ else
             m=sippi_prior(prior);
             m_propose(:,:,i)=m{1};
             % compute forward response
-            d=sippi_forward(m,forward,prior);
+            d=sippi_forward(m,forward,prior,data);
             d_propose(:,i)=d{1};
             % compute log-likelihood
             logL_propose(i)=sippi_likelihood(d,data);
@@ -94,6 +99,9 @@ else
                 %d_noise=gaussian_simulation_cholesky(dt,Ct,1);
                 is_cholesky=1;
                 d_noise=gaussian_simulation_cholesky(dt,Ct_chol,1,is_cholesky);
+                if di_use>1
+                    d_noise=d_noise(data{1}.i_use);
+                end
                 d_sim(:,i)=d_propose(:,i)+d_noise(:);
             end            
         end
@@ -156,7 +164,7 @@ end
 %
 T=ceil(T_est);
 
-Pacc = exp( (1/T)*(logL-max(logL)) );
+Pacc = exp( (1./T)*(logL-max(logL)) );
 
 r=rand(1,N);
 i_sample = find(Pacc>r);
@@ -172,7 +180,7 @@ n_post=size(m_post,3);
 
 [m_mean,m_var]  = etype(m_post);
 
-txt_out = sprintf('%s_rejection_N%d_T%d',txt,N,T);
+txt_out = sprintf('%s_rejection_N%d_di%d_T%d',txt,N,di_use,T);
 disp(txt_out)
 
 %%

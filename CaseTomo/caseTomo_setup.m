@@ -30,10 +30,10 @@ if strcmp(useCase,'Kallerup')
     D.R=K.ant_pos(:,3:4);
     D.d_obs = K.data{1}.d_obs;
     D.d_std = K.data{1}.d_std;
-    D.Ct = K.data{1}.Ct;
     D.dt = K.data{1}.dt;
-    D.Ct = K.data{1}.CD;
-    addExtra=1;
+    D.Ct = K.data{1}.Ct; % Only modeling error C_t
+    D.Ct = K.data{1}.CD; % All errors C_d+C_p+C_t
+    addExtra=0;
     if addExtra==1
         D.Ct=D.Ct+4;
     end
@@ -59,8 +59,26 @@ data{id}.d_obs=D.d_obs;
 data{id}.d_std=D.d_std;
 %data{id}.i_use=[10:10:length(data{id}.d_obs)];
 data{id}.Ct=D.Ct; % modelization and static error
+%%
+ischol=1;
+while ischol==1
+try chol(data{id}.Ct);
+    disp('data{id}.Ct is symmetric positive definite.')
+    ischol=0;
+catch ME
+    disp('data{id}.Ct is not symmetric positive definite')
+    ischol=1;
+    v0=mean(diag(data{id}.Ct));
+    %data{id}.Ct=data{id}.Ct+0.001*v0+0.001*diag(diag(data{id}.Ct));
+    data{id}.Ct=data{id}.Ct+0.001*diag(diag(data{id}.Ct));
+end
+end
+
+%%
 if isfield(D,'dt');
     data{id}.dt=D.dt; % modelization and static error
+else
+    data{id}.dt=D.d_obs.*0; % modelization and static error
 end
 
 

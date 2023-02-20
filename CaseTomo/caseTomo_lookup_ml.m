@@ -40,7 +40,7 @@ end
 % get m{2}:AREA and m{3};P(v<vmax)
 dx=prior{1}.x(2)-prior{1}.x(1);
 for i=1:N
-    [P,A,vmax]=caseTomo_reals_to_P_area(ABC.m{1}{1}(:)',dx);
+    [P,A,vmax]=caseTomo_reals_to_P_area(ABC.m{i}{1}(:)',dx);
     
     ABC.m{i}{2}=A;
     ABC.m{i}{3}=ABC.m{i}{1}<vmax;
@@ -51,15 +51,17 @@ end
 
 
 %% VELOCITY
+clear ml
 ml.type = 'regression';
 ml.hidden_layers = 6;
 ml.hidden_units = 40;
 ml.use_log = 0;
 ml.MiniBatchSize=4*128;
 ml.MaxIteNotImproving=10;
-ml.ExecutionEnvironment = 'cpu';
+%ml.ExecutionEnvironment = 'cpu';
 ml.normalize=1; % normalize data
-ml.id=1; % noise data
+% ml.id=1; % noise free data
+ml.id=2; % noisy data
 ml.im=1; % velocity
 ml.Plots = 'training-progress';
 ml.Plots = 'none';
@@ -67,6 +69,7 @@ ml.Plots = 'none';
 [net,ml,ABC]=sippi_abc_ml_setup(ABC,ml);
 %%
 D=data{1}.d_obs;
+%D=ABC.d{3}{2}
 M_est=sippi_abc_ml_predict(ABC,D);
 x=prior{1}.x;
 y=prior{1}.y;
@@ -76,7 +79,7 @@ figure(41);clf
 subplot(1,3,1)
 imagesc(x,y,m_est)
 axis image;colormap(prior{1}.cmap)
-caxis(prior{1}.cax_std)
+caxis(prior{1}.cax)
 title('\sigma(m) - mean')
 colorbar
 print_mul(sprintf('%s_post_mean',txt_out))
@@ -95,7 +98,13 @@ ml.id=2; % noise data
 ml.im=iml; % AREA
 [net,ml,ABC]=sippi_abc_ml_setup(ABC,ml);
 D=data{1}.d_obs;
-A_est=sippi_abc_ml_predict(ABC,D,iml);
+A_est=sippi_abc_ml_predict(ABC,D,iml)
+
+%%
+i=1;
+D=ABC.d{i}{2};
+A_est=sippi_abc_ml_predict(ABC,D,iml)
+[A_est,ABC.m{i}{2}]
 
 
 return
