@@ -52,7 +52,7 @@ else
 
     %%
     if doSave==1
-        save(txt_out)
+        save(txt_out,'-v7.3')
     end
 
 end

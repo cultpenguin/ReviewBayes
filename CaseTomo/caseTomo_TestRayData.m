@@ -5,9 +5,10 @@ clear all;fmat='caseTomo_Kallerup_dx25_Fray-none_ME0_slo0.mat';N=100000;di_use=1
 
 
 %%
+clear dd d_post
 nx=length(prior{1}.x);
 ny=length(prior{1}.y);
-for i=1:size(reals_all,1);
+for i=400:800;500:size(reals_all,1);
     m{1}=reshape(reals_all(i,:),ny,nx);
     d=sippi_forward(m,forward,prior,data);
     d_post(:,i)=d{1};
@@ -42,7 +43,7 @@ xlabel('Data #')
 
 
 
-%%
+%
 figure(9);clf
 plot(forward.sources(:,1),forward.sources(:,2),'k.')
 hold on
@@ -59,7 +60,9 @@ for i=1:size(forward.sources,1)
     if vapp(i)<cax(1);icol(i)=1;end
     if vapp(i)>cax(2);icol(i)=size(cmap,1);end
     lw=2*(vapp-0.1)./(0.1);
-    lw=5*(vapp-0.4)./(0.8)
+    p=1.3;
+    p0=0.9;
+    lw=5*(vapp-p0)./(1.3-p0);
     lw(lw<0.01)=0.01;
 
     plot([forward.sources(i,1),forward.receivers(i,1)],[forward.sources(i,2),forward.receivers(i,2)],'-','LineWidth',lw(i),'MarkerSize',1,'Color',cmap(icol(i),:))

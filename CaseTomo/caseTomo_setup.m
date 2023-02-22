@@ -39,7 +39,7 @@ if strcmp(useCase,'Kallerup')
     D.dt = K.data{1}.dt;
     D.Ct = K.data{1}.Ct; % Only modeling error C_t
     D.Ct = K.data{1}.CD; % All errors C_d+C_p+C_t
-    addExtra=0;
+    addExtra=1;
     if addExtra==1
         D.Ct=D.Ct+4;
     end
@@ -60,6 +60,17 @@ end
 %% SETUP DATA, PRIOR and FORWARD
 
 %% SETUP DATA
+skipBadData=1;
+if (strcmp(useCase,'Kallerup')&&skipBadData==1)
+    i_bad = [191,   213,   235,   257,   278,   352]; % SEE caseTomo_TestRayData
+    i_use = setxor(1:size(D.S,1),i_bad);
+    D.S=D.S(i_use,:);
+    D.R=D.R(i_use,:);
+    D.d_obs=D.d_obs(i_use,:);
+    D.dt=D.dt(i_use,:);
+    D.Ct=D.Ct(i_use,i_use);
+end
+
 id=1;
 data{id}.d_obs=D.d_obs;
 data{id}.d_std=D.d_std;
