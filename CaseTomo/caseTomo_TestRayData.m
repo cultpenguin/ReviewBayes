@@ -1,5 +1,5 @@
 clear all;useCase='Kallerup';dx=0.25;forward.type='ray';is_slowness=0;caseTomo_setup
-clear all;fmat='caseTomo_Kallerup_dx25_Fray-none_ME0_slo0.mat';N=500000;di_use=1;caseTomo_metropolis
+clear all;fmat='caseTomo_Kallerup_dx25_Fray-none_ME0_slo0.mat';N=100000;di_use=1;caseTomo_metropolis
 %prior_reals=1./prior_reals;
 %%
 
