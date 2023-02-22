@@ -8,6 +8,12 @@ end
 if ~exist('doComputeFrechet','var')
     doComputeFrechet=0;
 end
+if exist('is_slowness','var')
+    forward.is_slowness=is_slowness;
+else
+    forward.is_slowness=0;
+end
+
 if ~exist('useCase','var')
     useCase='Kallerup';
     %useCase='Arrenaes';
@@ -59,7 +65,13 @@ data{id}.d_obs=D.d_obs;
 data{id}.d_std=D.d_std;
 %data{id}.i_use=[10:10:length(data{id}.d_obs)];
 data{id}.Ct=D.Ct; % modelization and static error
-%%
+%
+if isfield(D,'dt');
+    data{id}.dt=D.dt; % modelization and static error
+else
+    data{id}.dt=D.d_obs.*0; % modelization and static error
+end
+%
 ischol=1;
 while ischol==1
 try chol(data{id}.Ct);
@@ -74,12 +86,6 @@ catch ME
 end
 end
 
-%%
-if isfield(D,'dt');
-    data{id}.dt=D.dt; % modelization and static error
-else
-    data{id}.dt=D.d_obs.*0; % modelization and static error
-end
 
 
 
@@ -96,18 +102,13 @@ if strcmp(useCase,'Kallerup')
     d=d_target_vel;
     n=9000;
 
-    useAltHigh=0;
-    if useAltHigh==1;
-        v1=d(d<0.1);
-        v2=d(d>0.1);
-        v2a=randn(n,1)*1.5*std(v2)+0.18;
-        d=[v1;v2a];
+    if forward.is_slowness==1, 
+        d=1./d;        
     end
 
     var0=var(d);
     m0=mean(d);
-    %d=randn(2*n,1)*sqrt(var0)+m0;d(d<0.02)=0.02;
-
+    
     [d_nscore,o_nscore]=nscore(d,1,1,min(d),max(d),0);
     im=1;
     clear prior
@@ -115,11 +116,14 @@ if strcmp(useCase,'Kallerup')
     prior{im}.o_nscore=o_nscore;
     prior{im}.type='FFTMA';
     prior{im}.name='Velocity (m/ns)';
-    prior{im}.Va=sprintf(sprintf('%5.4f Sph(15,90,.1)',var0));
-    %prior{im}.Va=sprintf(sprintf('%5.4f Sph(5,90,.3)',var0));
+    prior{im}.Va=sprintf(sprintf('%8.6f Sph(15,90,.1)',var0));
+    
     prior{im}.x=[ax(1):dx:ax(2)];
     prior{im}.y=[ax(3):dx:ax(4)];
     prior{im}.cax=cax;
+    if forward.is_slowness==1
+        prior{1}.cax=fliplr(1./cax);
+    end
     prior{im}.cmap=cmap;
 
 else
@@ -192,7 +196,7 @@ end
 
 %
 
-txt=sprintf('caseTomo_%s_dx%d_F%s-%s_ME%d',useCase,ceil(100*dx),forward.type,forward_full.type,comp_model_error);
+txt=sprintf('caseTomo_%s_dx%d_F%s-%s_ME%d_slo%d',useCase,ceil(100*dx),forward.type,forward_full.type,comp_model_error,is_slowness);
 disp(txt)
 save(txt)
 
@@ -202,7 +206,11 @@ if rseed>0; rng('default');rng(rseed);end
 for i=1:5;
     subplot(1,5,i);
     m=sippi_prior(prior);
-    imagesc(prior{1}.x,prior{1}.y,m{1});
+    if forward.is_slowness==1;
+        imagesc(prior{1}.x,prior{1}.y,1./m{1});
+    else
+        imagesc(prior{1}.x,prior{1}.y,m{1});
+    end
     caxis(cax);colormap(cmap)
     axis image
     axis(ax)
@@ -215,7 +223,11 @@ print_mul(sprintf('%s_%s',txt,'priorsample'))
 
 try
     figure;
-    histogram(prior{1}.o_nscore.d,linspace(cax(1),cax(2),31),'Normalization','Probability');
+    if forward.is_slowness==1;
+        histogram(1./prior{1}.o_nscore.d,linspace(cax(1),cax(2),31),'Normalization','Probability');
+    else
+        histogram(prior{1}.o_nscore.d,linspace(cax(1),cax(2),31),'Normalization','Probability');
+    end
     xlabel('Velocity (m/\mus)')
     ylabel('Probability')
     grid on

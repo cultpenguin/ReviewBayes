@@ -40,7 +40,12 @@ end
 % get m{2}:AREA and m{3};P(v<vmax)
 dx=prior{1}.x(2)-prior{1}.x(1);
 for i=1:N
-    [P,A,vmax]=caseTomo_reals_to_P_area(ABC.m{i}{1}(:)',dx);
+    if forward.is_slowness==1;
+        v=1./ABC.m{i}{1}(:)';
+    else
+        v=ABC.m{i}{1}(:)';
+    end
+    [P,A,vmax]=caseTomo_reals_to_P_area(v,dx);
     
     ABC.m{i}{2}=A;
     ABC.m{i}{3}=ABC.m{i}{1}<vmax;
@@ -88,7 +93,7 @@ print_mul(sprintf('%s_post_mean',txt_out))
 %% AREA
 iml=2;
 ml.type = 'regression';
-ml.hidden_layers = 2;
+ml.hidden_layers = 4;
 ml.hidden_units = 100;
 ml.use_log = 0;
 ml.MiniBatchSize=4*128;

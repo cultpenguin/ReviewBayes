@@ -10,6 +10,7 @@ if ~exist('doSave','var'); doSave=1; end
 if ~exist('T_end','var'); T_end=1; end
 if ~exist('rseed','var'); rseed=1;end
 if ~exist('di_use','var'); di_use=1; end
+if exist('is_slowness','var'); is_slowness=0;end
 if rseed>0; rng('default') ;rng(rseed);end
 
 %%
@@ -62,6 +63,12 @@ for i=1:10;
     m=sippi_prior(prior);
     prior_reals(i,:)=m{1}(:);
 end
+%% Convert to velocity?
+if forward.is_slowness == 1
+    reals_all = 1./reals_all;
+    prior_reals = 1./prior_reals;
+end
+
 
 %% plot Post Stats
 caseTomo_plot_post_stats(reals_all,prior_reals,prior,txt_out);
@@ -77,5 +84,6 @@ xlabel('Iteration Number')
 ylabel('log(L(m))')
 ppp(12,8,10,2,2)
 print_mul(sprintf('%s_logL',txt_out))
+
 
 

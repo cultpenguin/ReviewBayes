@@ -192,6 +192,14 @@ for i=1:10;
     prior_reals(i,:)=m{1}(:);
 end
 
+%% Convert to velocity?
+if forward.is_slowness == 1
+    prior_reals = 1./prior_reals;
+    post_reals = 1./post_reals;
+end
+
+
+
 %% plot Post Stats
 caseTomo_plot_post_stats(post_reals,prior_reals,prior,txt_out);
 %%

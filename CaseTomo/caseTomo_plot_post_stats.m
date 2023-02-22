@@ -2,7 +2,12 @@ function caseTomo_plot_post_stats(post_reals,prior_reals,prior,txt_out)
 
 if nargin<4, txt_out = 'stat';end
 if nargin<3, prior{1}.null=[];end
-if ~isfield(prior{1},'cax');prior{1}.cax=[0.1150    0.1750];end
+if ~isfield(prior{1},'cax');
+    prior{1}.cax=[0.1150    0.1750];    
+end
+if max(prior{1}.cax)>1
+    prior{1}.cax=fliplr(1./prior{1}.cax);
+end
 if ~isfield(prior{1},'cax_std');prior{1}.cax_std=[0 0.02];end
 if ~isfield(prior{1},'cmap');prior{1}.cmap=jet;end
 
