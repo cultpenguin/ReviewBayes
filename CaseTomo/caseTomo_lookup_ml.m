@@ -61,6 +61,7 @@ ml.type = 'regression';
 ml.hidden_layers = 6;
 ml.hidden_units = 40;
 ml.use_log = 0;
+ml.MaxEpochs=500;
 ml.MiniBatchSize=4*128;
 ml.MaxIteNotImproving=10;
 %ml.ExecutionEnvironment = 'cpu';

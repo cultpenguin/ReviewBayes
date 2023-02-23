@@ -57,7 +57,7 @@ else
     [d,forward]=sippi_forward(m,forward,prior,data);
     [~,~,data]=sippi_likelihood(d,data);
 
-    N_chunk = 50000;
+    N_chunk = 250000;
     N_loop = ceil(N/N_chunk);
 
     logL=zeros(1,N);
