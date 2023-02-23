@@ -14,6 +14,11 @@ else
     forward.is_slowness=0;
 end
 
+if ~exist('doDataGaussian','var');doDataGaussian=0;end % Force marginal to be Gaussian
+if ~exist('doDataBoost','var');doDataBoost=0;end % Add prior probability for medium velocities.
+if ~exist('useCorrelatedNoise','var');useCorrelatedNoise=1;end % Use correlated of uncorrelated noise
+if ~exist('skipBadData','var');skipBadData=0;end % skip 'BAD' data --> caseTomoTestRayData
+
 if ~exist('useCase','var')
     useCase='Kallerup';
     %useCase='Arrenaes';
@@ -39,7 +44,7 @@ if strcmp(useCase,'Kallerup')
     D.dt = K.data{1}.dt;
     D.Ct = K.data{1}.Ct; % Only modeling error C_t
     D.Ct = K.data{1}.CD; % All errors C_d+C_p+C_t
-    addExtra=1;
+    addExtra=0;
     if addExtra==1
         D.Ct=D.Ct+4;
     end
@@ -75,7 +80,12 @@ id=1;
 data{id}.d_obs=D.d_obs;
 data{id}.d_std=D.d_std;
 %data{id}.i_use=[10:10:length(data{id}.d_obs)];
-data{id}.Ct=D.Ct; % modelization and static error
+
+if useCorrelatedNoise==0;
+    data{id}.Ct=diag(diag(D.Ct)); % modelization and static error
+else
+    data{id}.Ct=D.Ct; % modelization and static error
+end
 %
 if isfield(D,'dt');
     data{id}.dt=D.dt; % modelization and static error
@@ -112,7 +122,19 @@ if strcmp(useCase,'Kallerup')
     d_target_vel= (sqrt(K.c0.^2./d_target_eps)*10^-9);
     d=d_target_vel;
     n=9000;
-
+    
+    % convert to Gaussian
+    if doDataGaussian==1;
+        d = randn(size(d))*std(d)+mean(d);
+    end
+   
+    if doDataBoost==1;
+        d_org = d;
+        nd=ceil(length(d)*0.1);
+        d_extra = randn(nd,1)*std(d)/3+0.105;
+        d = [d(:);d_extra(:)];        
+    end
+    
     if forward.is_slowness==1, 
         d=1./d;        
     end
@@ -125,12 +147,19 @@ if strcmp(useCase,'Kallerup')
     clear prior
     prior{im}.d_target=d;
     prior{im}.o_nscore=o_nscore;
-    prior{im}.type='FFTMA';
+    %prior{im}.type='FFTMA';
     prior{im}.name='Velocity (m/ns)';
     prior{im}.Va=sprintf(sprintf('%8.6f Sph(15,90,.1)',var0));
-    
+        
     prior{im}.x=[ax(1):dx:ax(2)];
     prior{im}.y=[ax(3):dx:ax(4)];
+
+    if length(prior{im}.x)<25
+        prior{im}.type='cholesky';prior{im}.Cm=prior{im}.Va;
+    else
+        prior{im}.type='FFTMA';
+    end
+
     prior{im}.cax=cax;
     if forward.is_slowness==1
         prior{1}.cax=fliplr(1./cax);
