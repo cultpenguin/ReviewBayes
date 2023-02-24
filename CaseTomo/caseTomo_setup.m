@@ -14,10 +14,15 @@ else
     forward.is_slowness=0;
 end
 
-if ~exist('doDataGaussian','var');doDataGaussian=0;end % Force marginal to be Gaussian
+if ~exist('doPriorGaussian','var');doPriorGaussian=0;end % Force marginal velocity prior to be Gaussian
 if ~exist('doDataBoost','var');doDataBoost=0;end % Add prior probability for medium velocities.
 if ~exist('useCorrelatedNoise','var');useCorrelatedNoise=1;end % Use correlated of uncorrelated noise
 if ~exist('skipBadData','var');skipBadData=0;end % skip 'BAD' data --> caseTomoTestRayData
+% Next two should probably not both be enabled.
+if ~exist('addExtraCt','var');addExtraCt=0;end % Add exttra constant tp Ct to allow for bias
+if ~exist('Do_comp_model_error','var');Do_comp_model_error=1-addExtraCt;end % Add exttra constant tp Ct to allow for bias
+
+
 
 if ~exist('useCase','var')
     useCase='Kallerup';
@@ -43,10 +48,9 @@ if strcmp(useCase,'Kallerup')
     D.d_std = K.data{1}.d_std;
     D.dt = K.data{1}.dt;
     D.Ct = K.data{1}.Ct; % Only modeling error C_t
-    D.Ct = K.data{1}.CD; % All errors C_d+C_p+C_t
-    addExtra=0;
-    if addExtra==1
-        D.Ct=D.Ct+4;
+    D.Ct = K.data{1}.CD; % All errors C_d+C_p+C_t   
+    if addExtraCt==1
+        D.Ct=D.Ct+3^2;
     end
 
     %D.dt = K.data{1}.dD;
@@ -65,10 +69,19 @@ end
 %% SETUP DATA, PRIOR and FORWARD
 
 %% SETUP DATA
-skipBadData=1;
 if (strcmp(useCase,'Kallerup')&&skipBadData==1)
-    i_bad = [191,   213,   235,   257,   278,   352]; % SEE caseTomo_TestRayData
-    i_use = setxor(1:size(D.S,1),i_bad);
+    %i_bad = [191,   213,   235,   257,   278,   352]; % SEE caseTomo_TestRayData
+    %i_bad = [130   131   132   149   150   151   152   170   171   172   190   191   192   212];
+    %i_bad = [72   110   111   112   129   130   131   132   133   149   150   151   152   167   169   170   171   172   173   190   191  192   193   212   213   233   273];
+    i_use=1:size(D.S,1);
+    % 1st filter
+    i_bad = [10    11   123   124   130   150   170   190   191   192   213   214   235   352];
+    i_use = setxor(i_use,i_bad);
+    % 2nd filter
+    i_bad=i_use([125   144   161   163   164   165   183   184   203   223   244   322]);
+    i_use = setxor(i_use,i_bad);
+
+
     D.S=D.S(i_use,:);
     D.R=D.R(i_use,:);
     D.d_obs=D.d_obs(i_use,:);
@@ -124,7 +137,7 @@ if strcmp(useCase,'Kallerup')
     n=9000;
     
     % convert to Gaussian
-    if doDataGaussian==1;
+    if doPriorGaussian==1;
         d = randn(size(d))*std(d)+mean(d);
     end
    
@@ -149,7 +162,12 @@ if strcmp(useCase,'Kallerup')
     prior{im}.o_nscore=o_nscore;
     %prior{im}.type='FFTMA';
     prior{im}.name='Velocity (m/ns)';
+    r1=15;  r2=1.5;
+    r1=1.5;  r2=1.5;
+    r1=5.0;  r2=1.0;
+    %r1=.5;  r2=.5;
     prior{im}.Va=sprintf(sprintf('%8.6f Sph(15,90,.1)',var0));
+    prior{im}.Va=sprintf(sprintf('%8.6f Sph(%5.1f,90,%5.2f)',var0,r1,r2/r1));
         
     prior{im}.x=[ax(1):dx:ax(2)];
     prior{im}.y=[ax(3):dx:ax(4)];
@@ -211,15 +229,15 @@ forward.forward_function='sippi_forward_traveltime';
 
 m=sippi_prior(prior);
 [d,forward]=sippi_forward(m,forward,prior,data);
-
-comp_model_error=0;
-if comp_model_error==1;
+if Do_comp_model_error==1;
 
     % SETUP THE 'OPTIMAL' FORWARD MODEL
     forward_full.forward_function='sippi_forward_traveltime';
     forward_full.sources=D.S;
     forward_full.receivers=D.R;
-    forward_full.type='fat';forward_full.linear=0;forward_full.freq=0.1;
+    forward_full.type='ray';
+    forward_full.linear=1;
+    %forward_full.linear=0;forward_full.freq=0.1;
 
     % COMPUTE MODELING ERROR DUE TO USE OF forward AS OPPOSED TO forward_full
     Nme=600;
@@ -227,8 +245,10 @@ if comp_model_error==1;
 
     % ASSIGN MODELING ERROR TO DATA
     for id=1:length(data);
-        data{id}.dt=dt{id};
-        data{id}.Ct=Ct{id};
+        data{id}.dt_org=data{id}.dt;
+        data{id}.Ct_org=data{id}.Ct;
+        data{id}.dt=data{id}.dt_org+dt{id};
+        data{id}.Ct=data{id}.Ct_org+Ct{id};
     end
 else
     forward_full.type='none';
@@ -236,7 +256,7 @@ end
 
 %
 
-txt=sprintf('caseTomo_%s_dx%d_F%s-%s_ME%d_slo%d',useCase,ceil(100*dx),forward.type,forward_full.type,comp_model_error,is_slowness);
+txt=sprintf('caseTomo_%s_dx%d_F%s-%s_ME%d_slo%d',useCase,ceil(100*dx),forward.type,forward_full.type,Do_comp_model_error,is_slowness);
 disp(txt)
 save(txt)
 

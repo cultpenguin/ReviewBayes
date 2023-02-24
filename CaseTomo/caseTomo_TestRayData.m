@@ -60,9 +60,9 @@ for i=1:size(forward.sources,1)
     if vapp(i)<cax(1);icol(i)=1;end
     if vapp(i)>cax(2);icol(i)=size(cmap,1);end
     lw=2*(vapp-0.1)./(0.1);
-    p=1.3;
-    p0=0.9;
-    lw=5*(vapp-p0)./(1.3-p0);
+    p=1.3; p0=0.9;
+    p=0.75; p0=0.6;
+    lw=5*(vapp-p0)./(p-p0);
     lw(lw<0.01)=0.01;
 
     plot([forward.sources(i,1),forward.receivers(i,1)],[forward.sources(i,2),forward.receivers(i,2)],'-','LineWidth',lw(i),'MarkerSize',1,'Color',cmap(icol(i),:))
