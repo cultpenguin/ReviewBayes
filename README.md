@@ -1,12 +1,23 @@
 # ReviewBayes
 
-## Matlab packages
+## CaseAVO
+
+## CaseEM
+
+
+## CaseTomo -- KALLERUP GPR DATA
+The data are available through 
+B. B. Jensen, T. M. Hansen, L. Nielsen, K. S. Cordua, N. Tuxen, A. Tsitonaki, M. C. Looms, <b>Accounting for Modeling Errors in Linear Inversion of Crosshole Ground-Penetrating Radar Amplitude Data: Detecting Sand in Clayey Till</b>.
+
+[https://agupubs.onlinelibrary.wiley.com/doi/full/10.1029/2022JB024666]
+
+### Matlab packages
 
     git clone git@github.com:cultpenguin/sippi.git
     git clone git@github.com:cultpenguin/mgstat.git
     git clone git@github.com:cultpenguin/sippi-abc.git
   
-## Set paths in Matlab
+### Set paths in Matlab
 
     addpath sippi
     addpath mgstat
@@ -16,7 +27,7 @@
     
 
 
-## Setting up some data
+### Setting up some data
 
     clear all;
     useCase='Kallerup';
