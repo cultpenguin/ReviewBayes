@@ -35,17 +35,18 @@ B. B. Jensen, T. M. Hansen, L. Nielsen, K. S. Cordua, N. Tuxen, A. Tsitonaki, M.
     forward.type='eikonal';
     caseTomo_setup
 
-This creates 'caseTomo_Kallerup_dx25_Feikonal-none_ME0.mat' that contains the data, prior, forward amd noise model
+This creates 'caseTomo_Kallerup_dx10_Feikonal-ray_ME1_slo0.mat' that contains the data, prior, forward amd noise model
 
 Themn to create a large set of model and data (and data with noise) use 
 
     clear all;
-    fmat='caseTomo_Kallerup_dx25_Feikonal-none_ME0.mat';
+    fmat='caseTomo_Kallerup_dx10_Feikonal-ray_ME1_slo0.mat';
     N=200001;
     ml.normalize=1;
-       
+    caseTomo_lookup_ml       
+    
 The simulated models and data are available in the HDF5 file
-caseTomo_Kallerup_dx25_Feikonal-none_ME0_lu_N200001.h5, as
+caseTomo_Kallerup_dx10_Feikonal-ray_ME1_slo0_lu_noise_N200001.h5, as
 
     (base) tmeha@DellKontor:/mnt/f/PROGRAMMING/ReviewBayes/CaseTomo$ h5ls caseTomo_Kallerup_dx25_Feikonal-none_ME0_lu_N200001.h5
     D1                       Dataset {200001, 412} -- DATA WITHOUT NOISE
