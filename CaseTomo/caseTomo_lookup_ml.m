@@ -106,13 +106,54 @@ ml.im=iml; % AREA
 D=data{1}.d_obs;
 A_est=sippi_abc_ml_predict(ABC,D,iml)
 
+%% TEST
+for i=1:1000;
+    D=ABC.d{i}{2};
+    A_est=sippi_abc_ml_predict(ABC,D,iml);
+    [A_est,ABC.m{i}{2}];
+    A_est_all(i) = A_est;
+    A_true_all(i) = ABC.m{i}{2};
+end
+plot(A_est_all,A_true_all,'.')
+xlabel('A_{est}')
+ylabel('A_{true}')
+
+
+
+%% ABC
+[logL,evidence,T_est]=sippi_abc_logl(ABC,data);
 %%
-i=1;
-D=ABC.d{i}{2};
-A_est=sippi_abc_ml_predict(ABC,D,iml)
-[A_est,ABC.m{i}{2}]
-
-
+ns=100;
+T=8;T_est;
+[i_use_all,P_acc]=sippi_abc_post_sample_logl(logL,ns,T);
+clear m1 m2 m3
+for i=1:ns;
+    m1_prior(:,:,i)=ABC.m{i_use_all(i)}{1};
+    m2_prior(i)=ABC.m{i_use_all(i)}{2};
+    m3_prior(:,:,i)=ABC.m{i_use_all(i)}{3};
+    m1_post(:,:,i)=ABC.m{i_use_all(i)}{1};
+    m2_post(i)=ABC.m{i_use_all(i)}{2};
+    m3_post(:,:,i)=ABC.m{i_use_all(i)}{3};
+end
+[em,ev,emode]=etype(m1_post);
+[P]=etype(m3_post);
+figure(21);clf;
+subplot(1,3,1);
+imagesc(x,y,em);axis image
+caxis(prior{1}.cax)
+colorbar
+subplot(1,3,2);
+imagesc(x,y,sqrt(ev));axis image
+colorbar
+subplot(1,3,3);
+imagesc(x,y,P);axis image
+colorbar
+nx=length(prior{1}.x);
+ny=length(prior{1}.y);
+nxy=nx*ny;
+txt_out2 = sprintf('%s_T%d',txt_out,ceil(T));
+caseTomo_plot_post_stats(reshape(m1_post,[nxy,ns])',reshape(m1_prior,[nxy,ns])',prior,txt_out2);
+%%
 return
 %% PROBABILITY
 iml=3;
