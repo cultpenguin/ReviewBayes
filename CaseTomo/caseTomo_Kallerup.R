@@ -21,8 +21,8 @@ kallerup_data_rownames <- rownames(kallerup$data[[1]][[1]])
 kallerup_data <- kallerup$data[[1]][[1]]
 # different errors
 kallerup_obserr_mean <- kallerup$data[[1]][[1]][[7]]
-kellerup_obserr_cov <- kallerup$data[[1]][[1]][[8]]
-kellerup_CD<- kallerup$data[[1]][[1]][[9]]
+kallerup_obserr_cov <- kallerup$data[[1]][[1]][[8]]
+kallerup_CD<- kallerup$data[[1]][[1]][[9]]
 
 
 # Observed traveltimes
@@ -59,16 +59,17 @@ dx <- 0.10
 #dx <- 0.25
 
 # Number of ensembles/realisations
-n_e <- 100
+n_e <- 10000
 # Where is the starting point(index) in picking the realisations from the available
-r_st <- 160000
+r_st <- 1
 # Number of the prior realisation to be plotted
 pr_nr <- r_st -1 + 50
 # Which posterior realisation should be plotted (should be same as prior)
 ps_ne <- 50
 
 # width of the localisation patches
-dx_p <- 1.5
+#dx_p <- 1.5
+dx_p <- 2.25
 dy_p <- 1.75
 #dy_p <- 3.5
 #########################################
@@ -86,6 +87,10 @@ nc <- length(y_coord)
 # Making of the grid for plotting
 grid_list <- as.matrix(expand.grid(x_coord,y_coord))
 
+grid_exp <- expand.grid(y_coord,x_coord)
+
+grid_alt <-  as.matrix(expand.grid(y_coord,x_coord))
+
 # Reshaping one of the realisations of the prior model 
 reshape_M1_pr <- (matrix(h5_Kallerup_M1[,pr_nr], nrow = nr, ncol = nc,byrow = T))
 # reshaping it the second time for plotting 
@@ -94,13 +99,16 @@ reshape_M1_pr <- (matrix(h5_Kallerup_M1[,pr_nr], nrow = nr, ncol = nc,byrow = T)
 
 
 
+quilt.plot(grid_exp$Var2, grid_exp$Var1, t(reshape_M1_pr), ylim = c(7,0), nx = nr, ny = nc, ylab = "Y[m]", xlab = "X[m]", legend.lab = "V[m/ns]", zlim = c(0.07,0.18), asp  = 1)
+
+quilt.plot(grid_exp$Var2, grid_exp$Var1, h5_Kallerup_M1[,pr_nr], ylim = c(7,0), nx = nr, ny = nc, ylab = "Y[m]", xlab = "X[m]", legend.lab = "V[m/ns]", zlim = c(0.07,0.18), asp  = 1)
 
 
 mean_prior <- matrix((rowMeans(h5_Kallerup_M1)), nrow = nr, ncol = nc,byrow = T)
 # Plotting one of the chosen prior realisations
-quilt.plot(grid_list, reshape_M1_pr, nx = nr, ny = nc, ylim = c(7,0), ylab = "Y[m]", xlab = "X[m]", legend.lab = "V[m/ns]", zlim = c(0.07,0.18), asp  = 1)
+quilt.plot(grid_list, reshape_M1_pr, nx = nr, ny = nc, ylim = c(7,0), ylab = "Y[m]", xlab = "X[m]", legend.lab = "V[m/ns]", zlim = c(0.07,0.18))
 
-quilt.plot(grid_list, mean_prior, nx = nr, ny = nc, ylim = c(7,0), ylab = "Y[m]", xlab = "X[m]", legend.lab = "V[m/ns]",  useRaster = T, asp = 1.5)
+quilt.plot(grid_list, mean_prior, nx = nr, ny = nc, ylim = c(7,0), ylab = "Y[m]", xlab = "X[m]", legend.lab = "V[m/ns]",   zlim = c(0.07,0.18), asp = 1.5)
 
 # Picking out 100 realisations (at random?) to use for the LETKF
 
@@ -190,6 +198,7 @@ patch_nr <- 1
 for(j in 1:dY){
   for(i in 1:dX){
     crossing_patch[[patch_nr]] <- list()
+    #browser()
     
     # Left side: Line1, Right sides: Line2
     vertLine1 <- Line$new(A = vert_sides_coord[((i-1)*dY+j),1:2], B = vert_sides_coord[((i-1)*dY+j),3:4], FALSE, FALSE)
@@ -236,15 +245,20 @@ prior_patch_indx <- list()
 
 # outer loop, looping over y edge coordinates
 patch <- 1
+
 for(i in 1:dY){
   # inner loop, looping over x edge coordinates
   y_edge <- vert_sides_coord[cbind(c(i,i),c(2,4))]
   for(j in 1:dX){
+    #browser()
     x_edge <- horis_sides_coord[cbind(c(j,j),c(1,3))]
     prior_patch_indx[[patch]] <- list()
     # inside inner loop have an if-clause checking the coordinates
     
-    prior_patch_indx[[patch]] <- which(grid_list[,1]>=x_edge[1] & grid_list[,1]<=x_edge[2] &grid_list[,2]>=y_edge[1] & grid_list[,2]<=y_edge[2])
+    prior_patch_indx[[patch]] <- which(grid_alt[,2]>=x_edge[1] & grid_alt[,2]<=x_edge[2] & grid_alt[,1]>=y_edge[1] & grid_alt[,1]<=y_edge[2])
+    
+    #prior_patch_indx[[patch]] <- which(grid_list[,1]>=x_edge[1] & grid_list[,1]<=x_edge[2] & grid_list[,2]>=y_edge[1] & grid_list[,2]<=y_edge[2])
+    
     
     patch <- patch + 1
     
@@ -252,6 +266,17 @@ for(i in 1:dY){
   
 }
 
+prio_patch <- matrix((h5_Kallerup_M1[prior_patch_indx[[1]],pr_nr]), nrow = 23, ncol = 18, byrow= T)
+
+test_reshape <- matrix((h5_Kallerup_M1[,pr_nr]), nrow = nr, ncol = nc, byrow= T)
+
+test_reshape <- as.vector(test_reshape)
+
+quilt.plot(grid_alt[prior_patch_indx[[1]],2],grid_alt[prior_patch_indx[[1]],1], h5_Kallerup_M1[prior_patch_indx[[1]],pr_nr], nx = 23, ny = 18, ylim = c(7,0), ylab = "Y[m]", xlab = "X[m]", legend.lab = "V[m/ns]", zlim = c(0.07,0.18), xlim =c(-0.5,4))
+
+quilt.plot(grid_list[prior_patch_indx[[1]],],  reshape_M1_pr[1:23,1:18], ylim = c(7,0),nx = 22, ny = 17, ylab = "Y[m]", xlab = "X[m]", legend.lab = "V[m/ns]", zlim = c(0.07,0.18), xlim =c(-0.5,4))
+
+quilt.plot(grid_list[prior_patch_indx[[1]],], test_reshape[prior_patch_indx[[1]]], ylim = c(7,0),nx = 23, ny = 18, ylab = "Y[m]", xlab = "X[m]", legend.lab = "V[m/ns]", zlim = c(0.07,0.18), xlim =c(-0.5,4))
 
 
 ######## LETKF step #########
@@ -260,6 +285,8 @@ for(i in 1:dY){
 # r_matrix (observation covariance)
 
 # y_matrix - simulated data ( )
+
+n_e <- 100
 
 Y_avg <- rowMeans(h5_Kallerup_D2[,r_st:(r_st-1+n_e)])
 
@@ -272,7 +299,7 @@ X_avg <- rowMeans(h5_Kallerup_M1[,r_st:(r_st-1+n_e)])
 X_matrix <- h5_Kallerup_M1[,r_st:(r_st-1+n_e)] - X_avg
 
 # Temporary R-matrix 
-R_temp <- diag(kellerup_CD)
+R_temp <- diag(kallerup_CD)
 post_velocity <- matrix(NA, nrow = length(X_avg), ncol = n_e)
 
 # Indexes for extraction of variables for each of the patches done in domain_div_loc.R
@@ -303,17 +330,30 @@ for(p in 1: length(crossing_patch)){
 
 reshape_M1 <- matrix(post_velocity[,ps_ne], nrow = nr, ncol = nc, byrow=T)
 # reshaping it the second time for plotting 
-reshape_M1_vec <- matrix(reshape_M1, byrow = T)
+reshape_M1_vec <-as.vector(reshape_M1)
 
 # Plotting one of the chosen prior realisations
-quilt.plot(grid_list, reshape_M1_vec, nx = nr, ny = nc, ylim = c(7,0),ylab = "Y[m]", xlab = "X[m]", legend.lab = "V[m/ns]", zlim = c(0.05,0.17), asp=1)
+quilt.plot(grid_exp$Var2, grid_exp$Var1, post_velocity[,ps_ne], nx = nr, ny = nc, ylim = c(7,0),ylab = "Y[m]", xlab = "X[m]", legend.lab = "V[m/ns]", zlim = c(0.05,0.18))
+
+quilt.plot(grid_list,reshape_M1, nx = nr, ny = nc, ylim = c(7,0),ylab = "Y[m]", xlab = "X[m]", legend.lab = "V[m/ns]", zlim = c(0.05,0.18))
+
 
 #image.plot(grid_list, reshape_M1)
 
 reshape_post <- matrix(rowMeans(post_velocity), nrow = nr, ncol = nc, byrow=T)
 
 
-quilt.plot(grid_list, reshape_post, nx = nr, ny = nc,  ylim = c(7,0),ylab = "Y[m]", xlab = "X[m]", legend.lab = "V[m/ns]",zlim = c(0.05, 0.17), asp =1)
+quilt.plot(grid_exp$Var2, grid_exp$Var1,rowMeans(post_velocity), nx = nr, ny = nc, ylim = c(7,0),ylab = "Y[m]", xlab = "X[m]", legend.lab = "V[m/ns]", zlim = c(0.05,0.18))
+
+quilt.plot(grid_list, reshape_post, nx = nr, ny = nc,  ylim = c(7,0),ylab = "Y[m]", xlab = "X[m]", legend.lab = "V[m/ns]",zlim = c(0.05, 0.18))
+
+
+
+plotting <- as.data.frame(grid_list)
+colnames(plotting) <- c("x","y")
+
+plotting$z <- reshape_M1_vec
+image.plot(xyz2img(plotting, zcol = 3, xcol = 1, ycol = 2))
 
 #test_data <- expand.grid(y_coord,x_coord)
 #test_data$z <- rowMeans(post_velocity)
@@ -328,8 +368,32 @@ quilt.plot(grid_list, reshape_post, nx = nr, ny = nc,  ylim = c(7,0),ylab = "Y[m
 #  geom_tile()+ylim(7,0)
 
 
+##########
+# Running a pure ETKF
+Y_avg <- rowMeans(h5_Kallerup_D2[,r_st:(r_st-1+n_e)])
+X_avg <- rowMeans(h5_Kallerup_M1[,r_st:(r_st-1+n_e)])
 
 
+Y_matrix_full <- h5_Kallerup_D2[,r_st:(r_st-1+n_e)] - Y_avg
+X_matrix_full <- h5_Kallerup_M1[,r_st:(r_st-1+n_e)] - X_avg
+
+mR_full <- kallerup_CD
+# only the marginal variance
+mR_full <- diag(diag(kallerup_CD))
+
+x_final_nonlocal <- loc_entkf(obs_data, mR_full, Y_matrix_full, X_matrix_full, X_avg, Y_avg)
+
+reshape_full_post_real <- matrix(x_final_nonlocal[,500], nrow = nr, ncol =nc, byrow = T)
+
+reshape_post_mean <- matrix(rowMeans(x_final_nonlocal), nrow = nr, ncol = nc, byrow=T)
+
+par(mfrow=c(1,2))
+quilt.plot(grid_list, reshape_full_post_real, nx = nr, ny = nc, ylim = c(7,0),ylab = "Y[m]", xlab = "X[m]", zlim = c(0.05,0.18), add.legend = FALSE)
+
+quilt.plot(grid_list,reshape_post_mean , nx = nr, ny = nc,  ylim = c(7,0),ylab = "Y[m]", xlab = "X[m]", legend.lab = "V[m/ns]",zlim = c(0.05, 0.18))
+
+
+write.csv(x_final_nonlocal, file = "post_etkf_10000")
 
 
 
