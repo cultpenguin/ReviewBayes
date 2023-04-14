@@ -11,11 +11,11 @@ clear all;useCase='Kallerup';dx=0.25;forward.type='eikonal';is_slowness=0;caseTo
 
 %% The Inversions
 % This first one is for Mina
-clear all;fmat='caseTomo_Kallerup_dx10_Feikonal-ray_ME1_slo0.mat';N=200001;caseTomo_lookup_ml
+clear all;fmat='caseTomo_Kallerup_dx10_Feikonal-ray_ME1_slo0.mat';N=500001;caseTomo_lookup_ml
 % Sampling
 % di_use: Use every di_use data
-clear all;fmat='caseTomo_Kallerup_dx10_Feikonal-ray_ME1_slo0.mat';N=250000;di_use=1;caseTomo_metropolis
-clear all;fmat='caseTomo_Kallerup_dx10_Feikonal-ray_ME1_slo0.mat';N=250000;di_use=1;caseTomo_rejection
+clear all;fmat='caseTomo_Kallerup_dx10_Feikonal-ray_ME1_slo0.mat';N=1000000;di_use=1;caseTomo_metropolis
+clear all;fmat='caseTomo_Kallerup_dx10_Feikonal-ray_ME1_slo0.mat';N=1000000;di_use=1;caseTomo_rejection
 % Linear Least Squares
 clear all;fmat='caseTomo_Kallerup_dx10_Fray-ray_ME1_slo0.mat';di_use=1;caseTomo_LeastSquares
 clear all;fmat='caseTomo_Kallerup_dx25_Fray-ray_ME1_slo0.mat';di_use=1;caseTomo_LeastSquares
