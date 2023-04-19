@@ -1,79 +1,27 @@
 clear all;close all;
-% Setup 
+useCase=3;Nlu=100000;Nr=400;useRejection=0;
+useCase=3;Nlu=100000;Nr=400;useRejection=1;
+
+%%
+if ~exist('useCase','var');useCase=3;end
+if ~exist('Nlu','var');Nlu=1001;end
+if ~exist('Nr','var');Nr=400;end
+if ~exist('useRejection','var');useRejection=1;end
+
+%% Setup ABC
 CaseAVO_setup
-% Setup ABC
-Nlu = 100001;
 CaseAVO_setup_ABC
-
-
-%% test single inversion
-ns=Nr;
-clear d
-id=1;
-data=data_mul{id};
-
-d{1}=data{1}.d_obs + gaussian_simulation_cholesky(0,data{1}.Cd);
-
-[logL]=sippi_likelihood(d,data);
-
-%% TEST SINGLE DATA
-%ABC.use_sippi_likelihood=0;
-id=1000;
-data=data_mul{id};
-
-t0=now;
-[logL,evidence,T_est,ABC,dt,iCT]=sippi_abc_logl(ABC,data);
-T=T_est
-[m_post, P_acc, i_use_all,d_post] = sippi_abc_post_sample(ABC, ns, T, logL);
-
-data_p=data;
-data_p{1}.Cd=diag([100000,100000,1]);
-[logL_p,evidence_p,T_p]=sippi_abc_logl(ABC,data_p);
-logL_p = logL_p.*0; % make sure logL_p = constant!!!
-[m_prior, P_acc_prior, i_use_all_prior,d_prior] = sippi_abc_post_sample(ABC, ns,T_p, logL_p);
-
-t1=now;
-t_per_data = (t1-t0)*3600*24;
-t_total = t_per_data*Nd;
-disp(sprintf('TimePerData=%4.1f ms',1000*t_per_data))
-disp(sprintf('Expected Run Time (singleCPU) = %4.1fs, %4.1fm, %4.1fh',t_total,t_total/60, t_total/(60*60)))
-p=gcp;Nw=p.NumWorkers;
-t_total=t_total/Nw;
-disp(sprintf('Expected Run Time (MulCPU) = %4.1fs, %4.1fm, %4.1fh',t_total,t_total/60, t_total/(60*60)))
-
-[t_end_txt,t_left_seconds]=time_loop_end(t0,1,Nd/Nw);
-disp(sprintf('Expected end: %s',t_end_txt))
-
-figure(7);clf;
-i1=4;i2=6;
-subplot(1,2,1);
-plot(m_prior{i1},m_prior{i2},'k.','MarkerSize',15);
-hold on,
-plot(m_post{i1},m_post{i2},'r.','MarkerSize',15);
-hold off
-xlabel('V_p')
-ylabel('\rho')
-
-subplot(1,2,2);
-plot(d_prior{1}(1,:),d_prior{1}(2,:),'k.','MarkerSize',15)
-hold on,
-plot(data{1}.d_obs(1),data{1}.d_obs(2),'g.','MarkerSize',52)
-plot(d_post{1}(1,:),d_post{1}(2,:),'r.','MarkerSize',15);
-hold off
-xlabel('r_o')
-ylabel('g')
-
 
 %% multest prior(post
 %id_arr=[1,1000,10000,40000];
 rng(1);
 id_arr=randomsample(Nd,4);
 figure(42);set_paper;
+t0=now;
 for i=1:length(id_arr);
     id=id_arr(i);
     data=data_mul{id};
 
-    t0=now;
     [logL,evidence,T_est,ABC,dt,iCT]=sippi_abc_logl(ABC,data);
     T=T_est;
     [m_post, P_acc, i_use_all,d_post] = sippi_abc_post_sample(ABC, ns, T, logL);
@@ -93,15 +41,26 @@ for i=1:length(id_arr);
     hold off
     xlabel('r_o')
     ylabel('g')
-
+    
     grid on
 
     title(sprintf('id=%d, T=%3.1f',id,T))
     drawnow;
 end
-print_mul('Mina_compare_prior_post_data')
+t1=now;
+print_mul(sprintf('%s_compare_prior_post_data',txt))
+drawnow;
+pause(1)
 
-pause(3)
+%%
+t_per_data = ((t1-t0)*3600*24)/length(id_arr);
+t_total = t_per_data*Nd;
+disp(sprintf('TimePerData=%4.1f ms',1000*t_per_data))
+disp(sprintf('Expected Run Time (singleCPU) = %4.1fs, %4.1fm, %4.1fh',t_total,t_total/60, t_total/(60*60)))
+p=gcp;Nw=p.NumWorkers;
+t_total_par=t_total/Nw;
+disp(sprintf('Expected Run Time (MulCPU) = %4.1fs, %4.1fm, %4.1fh',t_total_par,t_total_par/60, t_total_par/(60*60)))
+ 
 
 %% MUL INVERSION
 Ndata = length(data{1}.d_obs);
@@ -126,13 +85,15 @@ P_v_clay=zeros(Nd,1);
 M_T=zeros(Nd,1);
 
 n_p=101;p = linspace(0,1,n_p);
-doComputePriorStat=1;
+doComputePriorStat=0;
 %parfor id=1:Nd
 t0=now;
 %doPlot=4;
+time_sampling_0=now;
+
+if useRejection==1
 parfor id=1:Nd;
-    %for id=1:Nd;
-    if mod(id,2000)==0,
+    if mod(id,1000)==0,
         [t_end_txt,t_left_seconds]=time_loop_end(t0,id,Nd);
         progress_txt(id,Nd,t_end_txt);
     end
@@ -140,66 +101,61 @@ parfor id=1:Nd;
     [logL,evidence,T_est]=sippi_abc_logl(ABC,data);
     T=T_est;
     [m_real,P_acc_prior, i_use_all_prior,d_post] = sippi_abc_post_sample(ABC, Nr, T, logL);
-    if doComputePriorStat==1;
-        data_p=data;
-        data_p{1}.Cd=diag([100000,100000,1]);
-
-        [logL_p,evidence_p,T_p]=sippi_abc_logl(ABC,data_p);
-        logL_p=logL_p.*0;
-        [m_prior, P_acc_prior, i_use_all_prior,d_prior] = sippi_abc_post_sample(ABC, Nr,T_p, logL_p);
-
-        D_prior(id,:,:)=d_prior{1};
-        Rpr_sat_g(id,:)=m_prior{1};
-        Rpr_sat_o(id,:)=m_prior{2};
-        Rpr_sat_b(id,:)=1-(m_prior{2}+m_prior{1});
-        Rpr_v_clay(id,:)=m_prior{3};
-        Rpr_depth(id,:)=m_prior{7};
-
-        %%
-        if (doPlot>3)&(mod(id,10)==0)
-            %%
-            figure(43);
-            subplot(1,2,1)
-            plot(D.r0_sim_no_noise(100:100:end), D.g_sim_no_noise(100:100:end),'.','Color',[.8 .8 .8])
-            hold on
-            plot(d_prior{1}(1,:),d_prior{1}(2,:),'k.','MarkerSize',18)
-            scatter(d_prior{1}(1,:),d_prior{1}(2,:),10,m_prior{4},'filled')
-            plot(d_post{1}(1,:),d_post{1}(2,:),'r.','MarkerSize',18)
-            %scatter(d_post{1}(1,:),d_post{1}(2,:),10,m_real{4},'filled')
-            cb=colorbar;set(get(cb,'Ylabel'),'String','C_p')
-            plot(data{1}.d_obs(1),data{1}.d_obs(2),'k.','MarkerSize',57)
-            plot(data{1}.d_obs(1),data{1}.d_obs(2),'r.','MarkerSize',37)
-            plot(data{1}.d_obs(1),data{1}.d_obs(2),'k.','MarkerSize',7)
-            hold off
-            xlabel('r0');ylabel('g')
-            subplot(1,2,2)
-            scatter3(m_prior{4},m_prior{5},m_prior{6},10,d_prior{1}(1,:),'filled')
-            cb=colorbar;set(get(cb,'Ylabel'),'String','r_0')
-            %plot3(m_prior{4},m_prior{5},m_prior{6},'b.')
-            hold on
-            plot3(m_real{4},m_real{5},m_real{6},'ko')
-            hold off
-            xlabel('v_p');ylabel('v_s');zlabel('Density')
-            box on
-            legend('\rho','\sigma')
-            title(sprintf('id=%d, T=%3.1f',id, T))
-            drawnow;
-        end
-
-
-    end
-
+    
     M_T(id)=T;
-
     D_post(id,:,:)=d_post{1};
-
+    
     R_sat_g(id,:)=m_real{1};
     R_sat_o(id,:)=m_real{2};
     R_sat_b(id,:)=1-(m_real{2}+m_real{1});
     R_v_clay(id,:)=m_real{3};
     R_depth(id,:)=m_real{7};
+end
+end
 
-    %% Useful?
+if useRejection==0
+parfor id=1:Nd;
+    if mod(id,1000)==0,
+        [t_end_txt,t_left_seconds]=time_loop_end(t0,id,Nd);
+        progress_txt(id,Nd,t_end_txt);
+    end
+    data = data_mul{id};
+    [logL,evidence,T_est]=sippi_abc_logl(ABC,data);
+
+    
+    i_cur = randi(Nlu);
+    n_acc = 0;
+    i_sample = 100;
+    n_mcmc = Nr*i_sample;
+    j=0;
+    for i=1:n_mcmc
+        
+        i_pro = randi(Nlu);
+        P_acc = exp(logL(i_pro)-logL(i_cur));
+        if rand(1)<P_acc
+            n_acc = n_acc+1;
+            i_cur = i_pro;
+        end
+        
+        if mod(i,i_sample)==0
+            j=j+1;
+            L_cur(j)=logL(i_cur);
+            R_sat_g(id,j)=ABC.m{i_cur}{1};
+            R_sat_o(id,j)=ABC.m{i_cur}{2};
+            R_sat_b(id,j)=1-(ABC.m{i_cur}{1}+ABC.m{i_cur}{2});
+            R_v_clay(id,j)=ABC.m{i_cur}{3};
+            R_depth(id,j)=ABC.m{i_cur}{7};
+        end
+    end
+end
+end
+time_sampling_1=now;
+%%
+parfor id=1:Nd;
+    if mod(id,1000)==0,
+        [t_end_txt,t_left_seconds]=time_loop_end(t0,id,Nd);
+        progress_txt(id,Nd,t_end_txt);
+    end
     P_sat = cumsum([R_sat_g(id,:);R_sat_o(id,:);R_sat_b(id,:)]);
     R_cat = zeros(n_p,Nr);
     for ir=1:Nr
@@ -209,8 +165,132 @@ parfor id=1:Nd;
             R_cat(iic,ir)=icat+1;
         end
     end
-
 end
+
+% %%
+% parfor id=1:Nd;
+% %for id=1:200;Nd;
+%     if mod(id,1)==0,
+%         [t_end_txt,t_left_seconds]=time_loop_end(t0,id,Nd);
+%         progress_txt(id,Nd,t_end_txt);
+%     end
+%     data = data_mul{id};
+%     if useRejection==1
+%         % localized rejection
+%         [logL,evidence,T_est]=sippi_abc_logl(ABC,data);
+%         T=T_est;
+%         [m_real,P_acc_prior, i_use_all_prior,d_post] = sippi_abc_post_sample(ABC, Nr, T, logL);
+% 
+%         M_T(id)=T;
+%         D_post(id,:,:)=d_post{1};
+%         
+%         R_sat_g(id,:)=m_real{1};
+%         R_sat_o(id,:)=m_real{2};
+%         R_sat_b(id,:)=1-(m_real{2}+m_real{1});
+%         R_v_clay(id,:)=m_real{3};
+%         R_depth(id,:)=m_real{7};
+% 
+%     else
+%         % localized extended independent Metropolis
+%         %% 
+%         [logL,evidence,T_est]=sippi_abc_logl(ABC,data);   
+%     
+%         i_cur = randi(Nlu);
+%         n_acc = 0;
+%         i_sample = 100;        
+%         n_mcmc = Nr*i_sample;
+%         j=0;
+%         for i=1:n_mcmc
+% 
+%             i_pro = randi(Nlu);
+%             P_acc = exp(logL(i_pro)-logL(i_cur));
+%             if rand(1)<P_acc                
+%                 n_acc = n_acc+1;
+%                 i_cur = i_pro;
+%             end
+%             
+%             if mod(i,i_sample)==0
+%                 j=j+1;
+%                 L_cur(j)=logL(i_cur);
+%                 R_sat_g(id,j)=ABC.m{i_cur}{1};
+%                 R_sat_o(id,j)=ABC.m{i_cur}{2};
+%                 R_sat_b(id,j)=1-(ABC.m{i_cur}{1}+ABC.m{i_cur}{2});
+%                 R_v_clay(id,j)=ABC.m{i_cur}{3};
+%                 R_depth(id,j)=ABC.m{i_cur}{7};
+%             end
+%         end
+% 
+% 
+%     end
+%     
+%     if doComputePriorStat==1;
+% 
+%         data_p=data;
+%         data_p{1}.Cd=diag([100000,100000,1]);
+% 
+%         % localized Rejection
+%         [logL_p,evidence_p,T_p]=sippi_abc_logl(ABC,data_p);
+%         logL_p=logL_p.*0;
+%         [m_prior, P_acc_prior, i_use_all_prior,d_prior] = sippi_abc_post_sample(ABC, Nr,T_p, logL_p);
+%         
+%         D_prior(id,:,:)=d_prior{1};
+%         Rpr_sat_g(id,:)=m_prior{1};
+%         Rpr_sat_o(id,:)=m_prior{2};
+%         Rpr_sat_b(id,:)=1-(m_prior{2}+m_prior{1});
+%         Rpr_v_clay(id,:)=m_prior{3};
+%         Rpr_depth(id,:)=m_prior{7};
+% 
+%         %%
+%         if (doPlot>3)&(mod(id,10)==0)
+%             %%
+%             figure(43);
+%             subplot(1,2,1)
+%             plot(D.r0_sim_no_noise(100:100:end), D.g_sim_no_noise(100:100:end),'.','Color',[.8 .8 .8])
+%             hold on
+%             plot(d_prior{1}(1,:),d_prior{1}(2,:),'k.','MarkerSize',18)
+%             scatter(d_prior{1}(1,:),d_prior{1}(2,:),10,m_prior{4},'filled')
+%             plot(d_post{1}(1,:),d_post{1}(2,:),'r.','MarkerSize',18)
+%             %scatter(d_post{1}(1,:),d_post{1}(2,:),10,m_real{4},'filled')
+%             cb=colorbar;set(get(cb,'Ylabel'),'String','C_p')
+%             plot(data{1}.d_obs(1),data{1}.d_obs(2),'k.','MarkerSize',57)
+%             plot(data{1}.d_obs(1),data{1}.d_obs(2),'r.','MarkerSize',37)
+%             plot(data{1}.d_obs(1),data{1}.d_obs(2),'k.','MarkerSize',7)
+%             hold off
+%             xlabel('r0');ylabel('g')
+%             subplot(1,2,2)
+%             scatter3(m_prior{4},m_prior{5},m_prior{6},10,d_prior{1}(1,:),'filled')
+%             cb=colorbar;set(get(cb,'Ylabel'),'String','r_0')
+%             %plot3(m_prior{4},m_prior{5},m_prior{6},'b.')
+%             hold on
+%             plot3(m_real{4},m_real{5},m_real{6},'ko')
+%             hold off
+%             xlabel('v_p');ylabel('v_s');zlabel('Density')
+%             box on
+%             legend('\rho','\sigma')
+%             title(sprintf('id=%d, T=%3.1f',id, T))
+%             drawnow;
+%         end
+% 
+% 
+%     end
+% 
+% 
+% 
+%     %% Useful?
+%     P_sat = cumsum([R_sat_g(id,:);R_sat_o(id,:);R_sat_b(id,:)]);
+%     R_cat = zeros(n_p,Nr);
+%     for ir=1:Nr
+%         R_cat(:,ir)=1;
+%         for icat = 1:(size(P_sat,1)-1)
+%             iic=find(p>P_sat(icat,ir));
+%             R_cat(iic,ir)=icat+1;
+%         end
+%     end
+% 
+% end
+% time_sampling_1=now;
+time_sampling=(time_sampling_1-time_sampling_0)*3600*24;
+
 
 M_sat_g=reshape(mean(R_sat_g'),ny,nx);
 M_sat_o=reshape(mean(R_sat_o'),ny,nx);
@@ -232,12 +312,13 @@ Ppr_gas_50 = reshape(sum(Rpr_sat_g'>0.5)/Nr,ny,nx);
 
 
 
-disp(sprintf('Rejection sampling done'))
+disp(sprintf('Sampling done in %5.1 minites',time_sampling/60))
 d_std = sqrt(diag(data{1}.Cd));
-txt = sprintf('Mina_N%d_Nd%d_Nlu%d_Nr%d_%g_%g_%g',N,Nd,Nlu,Nr,1000*d_std(1),1000*d_std(2),d_std(3))
+txt2 = sprintf('%s_REJ%d_N%d_Nd%d_Nlu%d_Nr%d_%g_%g_%g',txt,useRejection,N,Nd,Nlu,Nr,1000*d_std(1),1000*d_std(2),d_std(3))
 %save(txt,'M_*','P_*','ABC','D*')
-save(space2char(txt,'_','\.'),'M_*','P_*', 'R_*','Mpr_*','Ppr_*', 'Rpr_*','D_*')
-save([space2char(txt,'_','\.'),'_all'])
+save(space2char(txt2,'_','\.'),'M_*','P_*', 'R_*','Mpr_*','Ppr_*', 'Rpr_*','D_*')
+save([space2char(txt2,'_','\.'),'_all'])
+
 %% show results
 figure(21);clf
 plot(D.r_0_sim, D.g_sim,'.','MarkerSize',.1)
@@ -288,7 +369,7 @@ title('Annealing Temperature')
 allAxesInFigure = findall(gcf,'type','axes');
 set(allAxesInFigure,'ydir','normal')
 
-print_mul(txt)
+print_mul(sprintf('%s_post',txt))
 
 %%
 if doComputePriorStat==1
@@ -341,7 +422,7 @@ if doComputePriorStat==1
     allAxesInFigure = findall(gcf,'type','axes');
     set(allAxesInFigure,'ydir','normal')
 
-    print_mul([txt,'_satg_prior_post'])
+    print_mul([txt2,'_satg_prior_post'])
 
 end
 %%
@@ -373,7 +454,7 @@ colorbar
 allAxesInFigure = findall(gcf,'type','axes');
 set(allAxesInFigure,'ydir','normal')
 
-print_mul([txt,'_P_gas_oil'])
+print_mul([txt2,'_P_gas_oil'])
 
 %% Information content
 for iy=1:ny
@@ -393,7 +474,7 @@ colormap(gca,1-gray)
 title('KL(prior,post)')
 allAxesInFigure = findall(gcf,'type','axes');
 set(allAxesInFigure,'ydir','normal')
-print_mul([txt,'_kl'])
+print_mul([txt2,'_kl'])
 
 figure(22);
 subplot(1,2,1);
@@ -408,7 +489,7 @@ title('H(post)')
 colormap(gca,1-gray)
 allAxesInFigure = findall(gcf,'type','axes');
 set(allAxesInFigure,'ydir','normal')
-print_mul([txt,'_entropy'])
+print_mul([txt2,'_entropy'])
 
 
 %%
@@ -426,7 +507,7 @@ title('T')
 colorbar
 grid on
 
-print_mul([txt,'_scatter'])
+print_mul([txt2,'_scatter1'])
 
 %%
 i_p=randomsample(Nd,10000);
@@ -451,7 +532,7 @@ set(gca,'ydir','normal')
 colormap(gca,flipud(hot))
 axis image;axis([0 1 0 1]);grid on;
 sgtitle('posterior')
-
+print_mul([txt2,'_scatter2'])
 %% PRIOR_POST
 figure(35);set_paper;
 
@@ -478,5 +559,5 @@ p2=plot(M_sat_o(:),M_sat_g(:),'r.');
 hold off
 xlabel('S_o');ylabel('S_g')
 legend([p1,p2],{'Prior','Post'})
-print_mul([txt,'_priorpost'])
+print_mul([txt2,'_priorpost'])
 

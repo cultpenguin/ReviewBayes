@@ -1,9 +1,15 @@
 %% Setup ABC
+if ~exist('txt','var')
+    txt = 'MINA_ABC';
+end
+
+mat_file = sprintf('%s_N%d',txt,Nlu);
+
+%% Setup ABC structure
 disp('Setup ABC')
 clear ABC
 Nlu=min([N Nlu]);
 i_use=randomsample(1:N,Nlu);
-mat_file = sprintf('MINA_ABC_N%d',Nlu);
 
 if exist([mat_file,'.mat'])==2
     disp(sprintf('Loading %s',mat_file))
