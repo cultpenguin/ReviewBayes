@@ -2,7 +2,7 @@ clear all;close all;
 % Setup 
 CaseAVO_setup
 % Setup ABC
-Nlu = 1000;
+Nlu = 100001;
 CaseAVO_setup_ABC
 
 
@@ -29,6 +29,7 @@ T=T_est
 data_p=data;
 data_p{1}.Cd=diag([100000,100000,1]);
 [logL_p,evidence_p,T_p]=sippi_abc_logl(ABC,data_p);
+logL_p = logL_p.*0; % make sure logL_p = constant!!!
 [m_prior, P_acc_prior, i_use_all_prior,d_prior] = sippi_abc_post_sample(ABC, ns,T_p, logL_p);
 
 t1=now;
@@ -81,6 +82,7 @@ for i=1:length(id_arr);
     data_p{1}.Cd=diag([100000,100000,1]);
     %data_p{1}.Cd=diag([1,1,1]/100000);
     [logL_p,evidence_p,T_p]=sippi_abc_logl(ABC,data_p);
+    logL_p =logL_p.*0; % Make sure logL_p = constant
     [m_prior, P_acc_prior, i_use_all_prior,d_prior] = sippi_abc_post_sample(ABC, ns,T_p, logL_p);
 
     subplot(2,ceil(length(id_arr)/2),i);
@@ -143,6 +145,7 @@ parfor id=1:Nd;
         data_p{1}.Cd=diag([100000,100000,1]);
 
         [logL_p,evidence_p,T_p]=sippi_abc_logl(ABC,data_p);
+        logL_p=logL_p.*0;
         [m_prior, P_acc_prior, i_use_all_prior,d_prior] = sippi_abc_post_sample(ABC, Nr,T_p, logL_p);
 
         D_prior(id,:,:)=d_prior{1};
