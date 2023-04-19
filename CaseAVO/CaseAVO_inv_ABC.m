@@ -115,7 +115,9 @@ end
 end
 
 if useRejection==0
-parfor id=1:Nd;
+i_sample = 100;
+for id=1:Nd;
+%parfor id=1:Nd;
     if mod(id,1000)==0,
         [t_end_txt,t_left_seconds]=time_loop_end(t0,id,Nd);
         progress_txt(id,Nd,t_end_txt);
@@ -126,9 +128,9 @@ parfor id=1:Nd;
     
     i_cur = randi(Nlu);
     n_acc = 0;
-    i_sample = 100;
+    
     n_mcmc = Nr*i_sample;
-    j=0;
+    
     for i=1:n_mcmc
         
         i_pro = randi(Nlu);
@@ -139,13 +141,13 @@ parfor id=1:Nd;
         end
         
         if mod(i,i_sample)==0
-            j=j+1;      
+            j=ceil(i/i_sample);      
+            R_sat_g(id,i)=ABC.m{i_cur}{1};
+            R_sat_o(id,j)=ABC.m{i_cur}{2};
+            R_sat_b(id,j)=1-(ABC.m{i_cur}{1}+ABC.m{i_cur}{2});
+            R_v_clay(id,j)=ABC.m{i_cur}{3};
+            R_depth(id,j)=ABC.m{i_cur}{7};        
         end
-        R_sat_g(id,j)=ABC.m{i_cur}{1};
-        R_sat_o(id,j)=ABC.m{i_cur}{2};
-        R_sat_b(id,j)=1-(ABC.m{i_cur}{1}+ABC.m{i_cur}{2});
-        R_v_clay(id,j)=ABC.m{i_cur}{3};
-        R_depth(id,j)=ABC.m{i_cur}{7};
         
     end
 end
