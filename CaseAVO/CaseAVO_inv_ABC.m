@@ -1,6 +1,6 @@
 clear all;close all;
 useCase=3;Nlu=100000;Nr=400;useRejection=0;
-useCase=3;Nlu=100000;Nr=400;useRejection=1;
+%useCase=3;Nlu=100000;Nr=400;useRejection=1;
 
 %%
 if ~exist('useCase','var');useCase=3;end
@@ -17,6 +17,7 @@ CaseAVO_setup_ABC
 rng(1);
 id_arr=randomsample(Nd,4);
 figure(42);set_paper;
+ns=800
 t0=now;
 for i=1:length(id_arr);
     id=id_arr(i);
@@ -34,10 +35,10 @@ for i=1:length(id_arr);
     [m_prior, P_acc_prior, i_use_all_prior,d_prior] = sippi_abc_post_sample(ABC, ns,T_p, logL_p);
 
     subplot(2,ceil(length(id_arr)/2),i);
-    plot(d_prior{1}(1,:),d_prior{1}(2,:),'k.','MarkerSize',15)
+    plot(d_prior{1}(1,:),d_prior{1}(2,:),'k.','MarkerSize',10)
     hold on,
     plot(data{1}.d_obs(1),data{1}.d_obs(2),'g.','MarkerSize',52)
-    plot(d_post{1}(1,:),d_post{1}(2,:),'r.','MarkerSize',12);
+    plot(d_post{1}(1,:),d_post{1}(2,:),'r.','MarkerSize',8);
     hold off
     xlabel('r_o')
     ylabel('g')
@@ -138,14 +139,14 @@ parfor id=1:Nd;
         end
         
         if mod(i,i_sample)==0
-            j=j+1;
-            L_cur(j)=logL(i_cur);
-            R_sat_g(id,j)=ABC.m{i_cur}{1};
-            R_sat_o(id,j)=ABC.m{i_cur}{2};
-            R_sat_b(id,j)=1-(ABC.m{i_cur}{1}+ABC.m{i_cur}{2});
-            R_v_clay(id,j)=ABC.m{i_cur}{3};
-            R_depth(id,j)=ABC.m{i_cur}{7};
+            j=j+1;      
         end
+        R_sat_g(id,j)=ABC.m{i_cur}{1};
+        R_sat_o(id,j)=ABC.m{i_cur}{2};
+        R_sat_b(id,j)=1-(ABC.m{i_cur}{1}+ABC.m{i_cur}{2});
+        R_v_clay(id,j)=ABC.m{i_cur}{3};
+        R_depth(id,j)=ABC.m{i_cur}{7};
+        
     end
 end
 end
