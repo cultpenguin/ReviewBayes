@@ -1,5 +1,7 @@
-clear all;close all;
-useCase=3;Nlu=100000;Nr=400;useRejection=0;
+%clear all;close all;
+%useCase=3;Nlu=100000;Nr=400;useRejection=0;
+useCase=2;Nlu=100000;Nr=400;useRejection=1;
+useCase=4;Nlu=100000;Nr=400;useRejection=1;
 useCase=3;Nlu=100000;Nr=400;useRejection=1;
 
 %%
@@ -369,7 +371,7 @@ title('Annealing Temperature')
 allAxesInFigure = findall(gcf,'type','axes');
 set(allAxesInFigure,'ydir','normal')
 
-print_mul(sprintf('%s_post',txt))
+print_mul(sprintf('%s_post',txt2))
 
 %%
 if doComputePriorStat==1

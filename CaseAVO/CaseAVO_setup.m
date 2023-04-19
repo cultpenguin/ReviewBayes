@@ -20,8 +20,10 @@ if useCase==1;
     D=load('data_cube_UPDATED.mat'); txt='caseAVO_0';
 elseif useCase==2;
     D=load('data_cube_UPDATED2.mat');  txt='caseAVO_2';
-else
+elseif useCase==3;
     D=load('data_cube_UPDATED3_no_corr'); txt='caseAVO_3_no_corr';
+else
+    D=load('data_cube_v4.mat'); txt = 'caseAVO_4';
 end
 
 D.depth_all=repmat(D.depth,[100,1]);
@@ -115,7 +117,7 @@ for i=1:nr;
 
     % sat_o
     subplot(nr,ns,3+(i-1)*ns)
-    sat_o_p=sat_g_p+reshape(D.sat_o_log(i1:i2),ny,nx);
+    sat_o_p=sat_o_p+reshape(D.sat_o_log(i1:i2),ny,nx);
     imagesc(x,y,reshape(D.sat_o_log(i1:i2),ny,nx));
     caxis([0 1])
     title(sprintf('sat_o, sim #%d',i))   
