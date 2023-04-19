@@ -19,6 +19,7 @@ CaseAVO_setup_ABC
 rng(1);
 id_arr=randomsample(Nd,4);
 figure(42);set_paper;
+ns=800
 t0=now;
 for i=1:length(id_arr);
     id=id_arr(i);
@@ -36,10 +37,10 @@ for i=1:length(id_arr);
     [m_prior, P_acc_prior, i_use_all_prior,d_prior] = sippi_abc_post_sample(ABC, ns,T_p, logL_p);
 
     subplot(2,ceil(length(id_arr)/2),i);
-    plot(d_prior{1}(1,:),d_prior{1}(2,:),'k.','MarkerSize',15)
+    plot(d_prior{1}(1,:),d_prior{1}(2,:),'k.','MarkerSize',10)
     hold on,
     plot(data{1}.d_obs(1),data{1}.d_obs(2),'g.','MarkerSize',52)
-    plot(d_post{1}(1,:),d_post{1}(2,:),'r.','MarkerSize',12);
+    plot(d_post{1}(1,:),d_post{1}(2,:),'r.','MarkerSize',8);
     hold off
     xlabel('r_o')
     ylabel('g')
@@ -116,7 +117,9 @@ end
 end
 
 if useRejection==0
-parfor id=1:Nd;
+i_sample = 100;
+for id=1:Nd;
+%parfor id=1:Nd;
     if mod(id,1000)==0,
         [t_end_txt,t_left_seconds]=time_loop_end(t0,id,Nd);
         progress_txt(id,Nd,t_end_txt);
@@ -127,9 +130,9 @@ parfor id=1:Nd;
     
     i_cur = randi(Nlu);
     n_acc = 0;
-    i_sample = 100;
+    
     n_mcmc = Nr*i_sample;
-    j=0;
+    
     for i=1:n_mcmc
         
         i_pro = randi(Nlu);
@@ -140,14 +143,14 @@ parfor id=1:Nd;
         end
         
         if mod(i,i_sample)==0
-            j=j+1;
-            L_cur(j)=logL(i_cur);
-            R_sat_g(id,j)=ABC.m{i_cur}{1};
+            j=ceil(i/i_sample);      
+            R_sat_g(id,i)=ABC.m{i_cur}{1};
             R_sat_o(id,j)=ABC.m{i_cur}{2};
             R_sat_b(id,j)=1-(ABC.m{i_cur}{1}+ABC.m{i_cur}{2});
             R_v_clay(id,j)=ABC.m{i_cur}{3};
-            R_depth(id,j)=ABC.m{i_cur}{7};
+            R_depth(id,j)=ABC.m{i_cur}{7};        
         end
+        
     end
 end
 end
