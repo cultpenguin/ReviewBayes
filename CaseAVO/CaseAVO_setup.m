@@ -88,8 +88,8 @@ caxis([-1 1].*.2);colormap(gca,cmap_linear)
 colorbar
 
 %% plot prior realizations
-figure(3);
-nr=5;
+figure(3);clf,
+nr=100;nr_show=4;
 ns=4;
 v_clay_p = zeros(ny,nx);
 sat_g_p = zeros(ny,nx);
@@ -100,48 +100,71 @@ for i=1:nr;
     i2=i*nxy;
     % vclay
     v_clay_p=v_clay_p+reshape(D.v_clay_log(i1:i2),ny,nx);
-    subplot(nr,ns,1+(i-1)*ns)
+    sat_g_p=sat_g_p+reshape(D.sat_g_log(i1:i2),ny,nx);
+    sat_o_p=sat_o_p+reshape(D.sat_o_log(i1:i2),ny,nx);
+    sat_b = reshape(1-(D.sat_o_log(i1:i2)+D.sat_g_log(i1:i2)),ny,nx);
+    find(sat_b<0)
+    sat_b_p=sat_b_p+sat_b;
+    if i<=nr_show
+    subplot(nr_show,ns,1+(i-1)*ns)
     imagesc(x,y,reshape(D.v_clay_log(i1:i2),ny,nx));
-    title(sprintf('v_c, sim #%d',i))
-    caxis([0 0.6])
+    title(sprintf('v_{clay}, sim #%d',i))
+    caxis([0 0.4])
     axis image
-    colorbar
+    %colorbar
 
     % sat_g
-    subplot(nr,ns,2+(i-1)*ns)
-    sat_g_p=sat_g_p+reshape(D.sat_g_log(i1:i2),ny,nx);
+    subplot(nr_show,ns,2+(i-1)*ns)
     imagesc(x,y,reshape(D.sat_g_log(i1:i2),ny,nx));
     caxis([0 1])
-    title(sprintf('sat_g, sim #%d',i))   
+    title(sprintf('s_{gas}, sim #%d',i))   
     axis image
 
     % sat_o
-    subplot(nr,ns,3+(i-1)*ns)
-    sat_o_p=sat_o_p+reshape(D.sat_o_log(i1:i2),ny,nx);
+    subplot(nr_show,ns,3+(i-1)*ns)
     imagesc(x,y,reshape(D.sat_o_log(i1:i2),ny,nx));
     caxis([0 1])
-    title(sprintf('sat_o, sim #%d',i))   
+    title(sprintf('s_{oil}, sim #%d',i))   
     axis image
 
     % sat_b
-    sat_b = reshape(1-D.sat_o_log(i1:i2)-D.sat_g_log(i1:i2),ny,nx);
-    subplot(nr,ns,4+(i-1)*ns)
-    sat_b_p=sat_b_p+sat_b;
+    subplot(nr_show,ns,4+(i-1)*ns)
     imagesc(x,y,sat_b);
     caxis([0 1])
-    title(sprintf('sat_b, sim #%d',i))   
+    title(sprintf('s_{brine}, sim #%d',i))   
     axis image
-    
+    drawnow
+    end
 end
-
+allAxesInFigure = findall(gcf,'type','axes');
+set(allAxesInFigure,'ydir','normal')
+set(allAxesInFigure,'FontSize',6)
+colormap(jet)
 print_mul(sprintf('%s_prior_reals_org',txt))
 
 
 %%
 figure(4);clf;
-subplot(2,2,1);imagesc(x,y,v_clay_p./nr);title('Prior mean, v_c');caxis([0 0.2]);axis image;colorbar
-subplot(2,2,2);imagesc(x,y,sat_g_p./nr);title('Sat_g');axis image;caxis([0 1]);colorbar
-subplot(2,2,3);imagesc(x,y,sat_o_p./nr);title('Sat_o');axis image;caxis([0 1]);colorbar
-subplot(2,2,4);imagesc(x,y,sat_b_p./nr);title('Sat_b');axis image;caxis([0 1]);colorbar
+subplot(2,2,1);imagesc(x,y,v_clay_p./nr);title('v_{clay}');caxis([0 0.2]);axis image;colorbar
+subplot(2,2,2);imagesc(x,y,sat_g_p./nr);title('s_{gas}');axis image;caxis([0 1]);colorbar
+subplot(2,2,3);imagesc(x,y,sat_o_p./nr);title('s_{oil}');axis image;caxis([0 1]);colorbar
+subplot(2,2,4);imagesc(x,y,sat_b_p./nr);title('s_{brine}');axis image;caxis([0 1]);colorbar
+colormap(jet)
+allAxesInFigure = findall(gcf,'type','axes');
+set(allAxesInFigure,'FontSize',10)
 print_mul(sprintf('%s_prior_mean_org',txt))
+
+%%
+figure(5);set_paper('landscape');clf;
+subplot(1,3,1);imagesc(x,y,v_clay_p./nr);title('v_{clay}');caxis([0 0.2]);axis image;colorbar
+subplot(1,3,2);imagesc(x,y,sat_g_p./nr);title('s_{gas}');axis image;caxis([0 1]);colorbar
+subplot(1,3,3);imagesc(x,y,sat_o_p./nr);title('s_{oil}');axis image;caxis([0 1]);colorbar
+colormap(jet)
+allAxesInFigure = findall(gcf,'type','axes');
+set(allAxesInFigure,'FontSize',8)
+set(allAxesInFigure,'ydir','normal')
+%axis(allAxesInFigure,'off')
+for iax=1:length(allAxesInFigure);set(get(allAxesInFigure(iax),'xlabel'),'String','Inline','FontSize',10);end
+for iax=1:length(allAxesInFigure);set(get(allAxesInFigure(iax),'ylabel'),'String','Crossline','FontSize',10);end
+print_mul(sprintf('%s_prior_mean_manus',txt))
 

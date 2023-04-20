@@ -1,8 +1,8 @@
 %clear all;close all;
 %useCase=3;Nlu=100000;Nr=400;useRejection=0;
-useCase=2;Nlu=100000;Nr=400;useRejection=1;
-useCase=4;Nlu=100000;Nr=400;useRejection=1;
-useCase=3;Nlu=100000;Nr=400;useRejection=1;
+%useCase=2;Nlu=100000;Nr=400;useRejection=1;
+%useCase=4;Nlu=100000;Nr=400;useRejection=1;
+%useCase=3;Nlu=100000;Nr=400;useRejection=1;
 
 %%
 if ~exist('useCase','var');useCase=3;end
@@ -375,6 +375,21 @@ allAxesInFigure = findall(gcf,'type','axes');
 set(allAxesInFigure,'ydir','normal')
 
 print_mul(sprintf('%s_post',txt2))
+
+%%
+%%
+figure(5);set_paper('landscape');clf;
+subplot(1,3,1);imagesc(x,y,M_v_clay);title('v_{clay}');caxis([0 0.2]);axis image;colorbar
+subplot(1,3,2);imagesc(x,y,M_sat_g);title('s_{gas}');axis image;caxis([0 1]);colorbar
+subplot(1,3,3);imagesc(x,y,M_sat_o);title('s_{oil}');axis image;caxis([0 1]);colorbar
+colormap(jet)
+allAxesInFigure = findall(gcf,'type','axes');
+set(allAxesInFigure,'FontSize',8)
+set(allAxesInFigure,'ydir','normal')
+%axis(allAxesInFigure,'off')
+for iax=1:length(allAxesInFigure);set(get(allAxesInFigure(iax),'xlabel'),'String','Inline','FontSize',10);end
+for iax=1:length(allAxesInFigure);set(get(allAxesInFigure(iax),'ylabel'),'String','Crossline','FontSize',10);end
+print_mul(sprintf('%s_post_mean_manus',txt2))
 
 %%
 if doComputePriorStat==1
