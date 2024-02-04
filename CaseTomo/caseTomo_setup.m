@@ -19,8 +19,9 @@ if ~exist('doDataBoost','var');doDataBoost=0;end % Add prior probability for med
 if ~exist('useCorrelatedNoise','var');useCorrelatedNoise=1;end % Use correlated of uncorrelated noise
 if ~exist('skipBadData','var');skipBadData=0;end % skip 'BAD' data --> caseTomoTestRayData
 % Next two should probably not both be enabled.
+if ~exist('addStaticErr','var');addStaticErr=1;end % Add correlated static errors
 if ~exist('addExtraCt','var');addExtraCt=0;end % Add exttra constant tp Ct to allow for bias
-if ~exist('Do_comp_model_error','var');Do_comp_model_error=1-addExtraCt;end % Add exttra constant tp Ct to allow for bias
+if ~exist('Do_comp_model_error','var');Do_comp_model_error=0;end % Add exttra constant tp Ct to allow for bias
 
 
 
@@ -255,8 +256,15 @@ else
 end
 
 %
+if addStaticErr>0;
+    ccS=addStaticErr;
+    ccR=addStaticErr;
+    ccU=0;
+    [Ct, Cs, Cr, C]=correlated_traveltime_tomography_errors(forward.sources,forward.receivers,ccS,ccR,ccU);
+    data{1}.Ct=data{1}.Ct+Ct;
+end
 
-txt=sprintf('caseTomo_%s_dx%d_F%s-%s_ME%d_slo%d',useCase,ceil(100*dx),forward.type,forward_full.type,Do_comp_model_error,is_slowness);
+txt=sprintf('caseTomo_%s_dx%d_F%s-%s_ME%d_slo%d_SE%d',useCase,ceil(100*dx),forward.type,forward_full.type,Do_comp_model_error,is_slowness,addStaticErr);
 disp(txt)
 save(txt)
 
