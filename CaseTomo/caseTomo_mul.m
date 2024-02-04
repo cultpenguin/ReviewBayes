@@ -2,11 +2,21 @@
 %% Setup / Parameterization
 close all
 % The linear forward
-%clear all;useCase='Kallerup';dx=0.10;forward.type='ray';is_slowness=0;caseTomo_setup
-%clear all;useCase='Kallerup';dx=0.25;forward.type='ray';is_slowness=0;caseTomo_setup
+%clear all;useCase='Kallerup';dx=0.10;forward.type='ray';is_slowness=0;addStaticErr=1;caseTomo_setup
+%clear all;useCase='Kallerup';dx=0.25;forward.type='ray';is_slowness=0;addStaticErr=1;caseTomo_setup
 % The non-linear forward
-clear all;useCase='Kallerup';dx=0.10;forward.type='eikonal';is_slowness=0;caseTomo_setup
-clear all;useCase='Kallerup';dx=0.25;forward.type='eikonal';is_slowness=0;caseTomo_setup
+clear all;useCase='Kallerup';dx=0.10;forward.type='eikonal';is_slowness=0;addStaticErr=1;caseTomo_setup
+clear all;useCase='Kallerup';dx=0.25;forward.type='eikonal';is_slowness=0;addStaticErr=1;caseTomo_setup
+clear all;useCase='Kallerup';dx=0.10;forward.type='eikonal';is_slowness=0;addStaticErr=2;caseTomo_setup
+clear all;useCase='Kallerup';dx=0.25;forward.type='eikonal';is_slowness=0;addStaticErr=2;caseTomo_setup
+%% The inversions
+
+clear all;fmat='caseTomo_Kallerup_dx10_Feikonal-none_ME0_slo0_SE1_G0.mat';N=1000000;di_use=1;caseTomo_metropolis
+clear all;fmat='caseTomo_Kallerup_dx10_Feikonal-none_ME0_slo0_SE2_G0.mat';N=1000000;di_use=1;caseTomo_metropolis
+clear all;fmat='caseTomo_Kallerup_dx10_Feikonal-none_ME0_slo0_SE1_G0.mat';N=1000000;di_use=1;caseTomo_rejection
+clear all;fmat='caseTomo_Kallerup_dx10_Feikonal-none_ME0_slo0_SE2_G0.mat';N=1000000;di_use=1;caseTomo_rejection
+
+return
 
 %% The Inversions
 % This first one is for Mina
@@ -45,6 +55,36 @@ clear all;fmat='caseTomo_Kallerup_dx10_Fray-ray_ME1_slo0.mat';di_use=1;caseTomo_
 clear all;fmat='caseTomo_Kallerup_dx25_Fray-ray_ME1_slo0.mat';di_use=1;caseTomo_LeastSquares
 
 return
+
+
+%% TEST
+clear all;close all
+useCase='Kallerup';dx=0.10;forward.type='ray';is_slowness=0;
+addStaticErr=2;
+caseTomo_setup
+%%
+close all
+fmat=txt;
+%fmat='caseTomo_Kallerup_dx10_Fray-none_ME0_slo0.mat'
+N=100000;di_use=1;caseTomo_metropolis
+
+%%
+clear all;useCase='Kallerup';dx=0.10;forward.type='ray';is_slowness=0;caseTomo_setup
+%%
+
+%%
+ccS=3;
+ccR=3;
+ccU=0;
+[Ct, Cs, Cr, C]=correlated_traveltime_tomography_errors(forward.sources,forward.receivers,ccS,ccR,ccU);
+
+Ct2= Ct+data{1}.Ct;
+
+subplot(1,2,1)
+imagesc(Ct2)[Ct, Cs, Cr, c]=correlated_traveltime_tomography_errors(forward.sources,forward.receivers,1,2,0)
+axis image
+subplot(1,2,2)
+d_err = gaussian_simulation_cholesky(0,Ct2+.0000001*eye(nd),1);plot(d_err)
 
 %% OTHER TESTS
 
