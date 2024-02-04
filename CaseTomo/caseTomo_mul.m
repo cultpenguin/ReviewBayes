@@ -81,7 +81,7 @@ ccU=0;
 Ct2= Ct+data{1}.Ct;
 
 subplot(1,2,1)
-imagesc(Ct2)[Ct, Cs, Cr, c]=correlated_traveltime_tomography_errors(forward.sources,forward.receivers,1,2,0)
+imagesc(Ct2)
 axis image
 subplot(1,2,2)
 d_err = gaussian_simulation_cholesky(0,Ct2+.0000001*eye(nd),1);plot(d_err)
