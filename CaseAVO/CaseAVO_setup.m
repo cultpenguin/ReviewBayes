@@ -36,7 +36,7 @@ nxy=nx*ny;
 disp('Setup data_mul')
 Nd = length(D.g_data);
 for i=1:Nd;
-    data{1}.d_obs = [D.r_0_data(i), D.g_data(1),D.depth(i)]';
+    data{1}.d_obs = [D.r_0_data(i), D.g_data(i),D.depth(i)]';
     % NEXT LINE SETS THE EXPECTED STD OF THE DATA NOISE!
     %data{1}.d_std = [0.005,0.005, 1]';
     data{1}.d_std=sqrt(diag(Cd));

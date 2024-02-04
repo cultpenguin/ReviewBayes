@@ -44,7 +44,7 @@ for i=1:length(id_arr);
     hold off
     xlabel('r_o')
     ylabel('g')
-    
+
     grid on
 
     title(sprintf('id=%d, T=%3.1f',id,T))
@@ -63,7 +63,7 @@ disp(sprintf('Expected Run Time (singleCPU) = %4.1fs, %4.1fm, %4.1fh',t_total,t_
 p=gcp;Nw=p.NumWorkers;
 t_total_par=t_total/Nw;
 disp(sprintf('Expected Run Time (MulCPU) = %4.1fs, %4.1fm, %4.1fh',t_total_par,t_total_par/60, t_total_par/(60*60)))
- 
+
 
 %% MUL INVERSION
 Ndata = length(data{1}.d_obs);
@@ -95,64 +95,64 @@ t0=now;
 time_sampling_0=now;
 
 if useRejection==1
-parfor id=1:Nd;
-    if mod(id,1000)==0,
-        [t_end_txt,t_left_seconds]=time_loop_end(t0,id,Nd);
-        progress_txt(id,Nd,t_end_txt);
+    parfor id=1:Nd;
+        if mod(id,1000)==0,
+            [t_end_txt,t_left_seconds]=time_loop_end(t0,id,Nd);
+            progress_txt(id,Nd,t_end_txt);
+        end
+        data = data_mul{id};
+        [logL,evidence,T_est]=sippi_abc_logl(ABC,data);
+        T=T_est;
+        [m_real,P_acc_prior, i_use_all_prior,d_post] = sippi_abc_post_sample(ABC, Nr, T, logL);
+
+        M_T(id)=T;
+        D_post(id,:,:)=d_post{1};
+
+        R_sat_g(id,:)=m_real{1};
+        R_sat_o(id,:)=m_real{2};
+        R_sat_b(id,:)=1-(m_real{2}+m_real{1});
+        R_v_clay(id,:)=m_real{3};
+        R_depth(id,:)=m_real{7};
     end
-    data = data_mul{id};
-    [logL,evidence,T_est]=sippi_abc_logl(ABC,data);
-    T=T_est;
-    [m_real,P_acc_prior, i_use_all_prior,d_post] = sippi_abc_post_sample(ABC, Nr, T, logL);
-    
-    M_T(id)=T;
-    D_post(id,:,:)=d_post{1};
-    
-    R_sat_g(id,:)=m_real{1};
-    R_sat_o(id,:)=m_real{2};
-    R_sat_b(id,:)=1-(m_real{2}+m_real{1});
-    R_v_clay(id,:)=m_real{3};
-    R_depth(id,:)=m_real{7};
-end
 end
 
 if useRejection==0
-i_sample = 100;
-for id=1:Nd;
-%parfor id=1:Nd;
-    if mod(id,1000)==0,
-        [t_end_txt,t_left_seconds]=time_loop_end(t0,id,Nd);
-        progress_txt(id,Nd,t_end_txt);
-    end
-    data = data_mul{id};
-    [logL,evidence,T_est]=sippi_abc_logl(ABC,data);
+    i_sample = 100;
+    for id=1:Nd;
+        %parfor id=1:Nd;
+        if mod(id,1000)==0,
+            [t_end_txt,t_left_seconds]=time_loop_end(t0,id,Nd);
+            progress_txt(id,Nd,t_end_txt);
+        end
+        data = data_mul{id};
+        [logL,evidence,T_est]=sippi_abc_logl(ABC,data);
 
-    
-    i_cur = randi(Nlu);
-    n_acc = 0;
-    
-    n_mcmc = Nr*i_sample;
-    
-    for i=1:n_mcmc
-        
-        i_pro = randi(Nlu);
-        P_acc = exp(logL(i_pro)-logL(i_cur));
-        if rand(1)<P_acc
-            n_acc = n_acc+1;
-            i_cur = i_pro;
+
+        i_cur = randi(Nlu);
+        n_acc = 0;
+
+        n_mcmc = Nr*i_sample;
+
+        for i=1:n_mcmc
+
+            i_pro = randi(Nlu);
+            P_acc = exp(logL(i_pro)-logL(i_cur));
+            if rand(1)<P_acc
+                n_acc = n_acc+1;
+                i_cur = i_pro;
+            end
+
+            if mod(i,i_sample)==0
+                j=ceil(i/i_sample);
+                R_sat_g(id,i)=ABC.m{i_cur}{1};
+                R_sat_o(id,j)=ABC.m{i_cur}{2};
+                R_sat_b(id,j)=1-(ABC.m{i_cur}{1}+ABC.m{i_cur}{2});
+                R_v_clay(id,j)=ABC.m{i_cur}{3};
+                R_depth(id,j)=ABC.m{i_cur}{7};
+            end
+
         end
-        
-        if mod(i,i_sample)==0
-            j=ceil(i/i_sample);      
-            R_sat_g(id,i)=ABC.m{i_cur}{1};
-            R_sat_o(id,j)=ABC.m{i_cur}{2};
-            R_sat_b(id,j)=1-(ABC.m{i_cur}{1}+ABC.m{i_cur}{2});
-            R_v_clay(id,j)=ABC.m{i_cur}{3};
-            R_depth(id,j)=ABC.m{i_cur}{7};        
-        end
-        
     end
-end
 end
 time_sampling_1=now;
 %%
@@ -185,35 +185,35 @@ end
 %         [logL,evidence,T_est]=sippi_abc_logl(ABC,data);
 %         T=T_est;
 %         [m_real,P_acc_prior, i_use_all_prior,d_post] = sippi_abc_post_sample(ABC, Nr, T, logL);
-% 
+%
 %         M_T(id)=T;
 %         D_post(id,:,:)=d_post{1};
-%         
+%
 %         R_sat_g(id,:)=m_real{1};
 %         R_sat_o(id,:)=m_real{2};
 %         R_sat_b(id,:)=1-(m_real{2}+m_real{1});
 %         R_v_clay(id,:)=m_real{3};
 %         R_depth(id,:)=m_real{7};
-% 
+%
 %     else
 %         % localized extended independent Metropolis
-%         %% 
-%         [logL,evidence,T_est]=sippi_abc_logl(ABC,data);   
-%     
+%         %%
+%         [logL,evidence,T_est]=sippi_abc_logl(ABC,data);
+%
 %         i_cur = randi(Nlu);
 %         n_acc = 0;
-%         i_sample = 100;        
+%         i_sample = 100;
 %         n_mcmc = Nr*i_sample;
 %         j=0;
 %         for i=1:n_mcmc
-% 
+%
 %             i_pro = randi(Nlu);
 %             P_acc = exp(logL(i_pro)-logL(i_cur));
-%             if rand(1)<P_acc                
+%             if rand(1)<P_acc
 %                 n_acc = n_acc+1;
 %                 i_cur = i_pro;
 %             end
-%             
+%
 %             if mod(i,i_sample)==0
 %                 j=j+1;
 %                 L_cur(j)=logL(i_cur);
@@ -224,27 +224,27 @@ end
 %                 R_depth(id,j)=ABC.m{i_cur}{7};
 %             end
 %         end
-% 
-% 
+%
+%
 %     end
-%     
+%
 %     if doComputePriorStat==1;
-% 
+%
 %         data_p=data;
 %         data_p{1}.Cd=diag([100000,100000,1]);
-% 
+%
 %         % localized Rejection
 %         [logL_p,evidence_p,T_p]=sippi_abc_logl(ABC,data_p);
 %         logL_p=logL_p.*0;
 %         [m_prior, P_acc_prior, i_use_all_prior,d_prior] = sippi_abc_post_sample(ABC, Nr,T_p, logL_p);
-%         
+%
 %         D_prior(id,:,:)=d_prior{1};
 %         Rpr_sat_g(id,:)=m_prior{1};
 %         Rpr_sat_o(id,:)=m_prior{2};
 %         Rpr_sat_b(id,:)=1-(m_prior{2}+m_prior{1});
 %         Rpr_v_clay(id,:)=m_prior{3};
 %         Rpr_depth(id,:)=m_prior{7};
-% 
+%
 %         %%
 %         if (doPlot>3)&(mod(id,10)==0)
 %             %%
@@ -275,12 +275,12 @@ end
 %             title(sprintf('id=%d, T=%3.1f',id, T))
 %             drawnow;
 %         end
-% 
-% 
+%
+%
 %     end
-% 
-% 
-% 
+%
+%
+%
 %     %% Useful?
 %     P_sat = cumsum([R_sat_g(id,:);R_sat_o(id,:);R_sat_b(id,:)]);
 %     R_cat = zeros(n_p,Nr);
@@ -291,7 +291,7 @@ end
 %             R_cat(iic,ir)=icat+1;
 %         end
 %     end
-% 
+%
 % end
 % time_sampling_1=now;
 time_sampling=(time_sampling_1-time_sampling_0)*3600*24;

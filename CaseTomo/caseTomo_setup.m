@@ -17,10 +17,13 @@ end
 if ~exist('doPriorGaussian','var');doPriorGaussian=0;end % Force marginal velocity prior to be Gaussian
 if ~exist('doDataBoost','var');doDataBoost=0;end % Add prior probability for medium velocities.
 if ~exist('useCorrelatedNoise','var');useCorrelatedNoise=1;end % Use correlated of uncorrelated noise
-if ~exist('skipBadData','var');skipBadData=0;end % skip 'BAD' data --> caseTomoTestRayData
+if ~exist('skipBadData','var');skipBadData=1;end % skip 'BAD' data --> caseTomoTestRayData
 % Next two should probably not both be enabled.
 if ~exist('addExtraCt','var');addExtraCt=0;end % Add exttra constant tp Ct to allow for bias
-if ~exist('Do_comp_model_error','var');Do_comp_model_error=1-addExtraCt;end % Add exttra constant tp Ct to allow for bias
+if ~exist('Do_comp_model_error','var');
+    %Do_comp_model_error=1-addExtraCt;
+    Do_comp_model_error=0;
+end % Add exttra constant tp Ct to allow for bias
 
 
 
@@ -49,6 +52,7 @@ if strcmp(useCase,'Kallerup')
     D.dt = K.data{1}.dt;
     D.Ct = K.data{1}.Ct; % Only modeling error C_t
     D.Ct = K.data{1}.CD; % All errors C_d+C_p+C_t   
+
     if addExtraCt==1
         D.Ct=D.Ct+3^2;
     end
@@ -256,7 +260,7 @@ end
 
 %
 
-txt=sprintf('caseTomo_%s_dx%d_F%s-%s_ME%d_slo%d',useCase,ceil(100*dx),forward.type,forward_full.type,Do_comp_model_error,is_slowness);
+txt=sprintf('caseTomo_%s_dx%d_F%s-%s_ME%d_slo%d_G%d',useCase,ceil(100*dx),forward.type,forward_full.type,Do_comp_model_error,is_slowness,doPriorGaussian);
 disp(txt)
 save(txt)
 
