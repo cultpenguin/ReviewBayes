@@ -182,6 +182,8 @@ n_post=size(m_post,3);
 
 txt_out = sprintf('%s_rejection_N%d_di%d_T%d',txt,N,di_use,T);
 disp(txt_out)
+save(txt_out)
+
 
 %%
 
