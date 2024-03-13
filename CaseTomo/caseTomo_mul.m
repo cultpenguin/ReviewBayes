@@ -18,7 +18,7 @@ clear all;fmat='caseTomo_Kallerup_dx10_Feikonal-none_ME0_slo0_SE1_G0.mat';N=1000
 clear all;fmat='caseTomo_Kallerup_dx10_Feikonal-none_ME0_slo0_SE2_G0.mat';N=1000000;di_use=1;caseTomo_rejection
 %%
 
-clear all;fmat='caseTomo_Kallerup_dx10_Feikonal-none_ME0_slo0_SE2_G0.mat';N=10000;di_use=1;caseTomo_rejection_local
+clear all;fmat='caseTomo_Kallerup_dx10_Feikonal-none_ME0_slo0_SE2_G0.mat';N=1000000;di_use=1;caseTomo_rejection_local
 
 %%
 return

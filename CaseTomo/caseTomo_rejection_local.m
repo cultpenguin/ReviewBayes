@@ -217,10 +217,10 @@ semilogy(exp((1/T)*(logL-max(logL))),'-');ylim([1e-2 1])
 title(sprintf('T=%g',T))
 print_mul(sprintf('%s_anneal',txt_out))
 
-return
 
 
 %% LOCAL
+close all
 M=h5read(h5,'/M');
 D=h5read(h5,'/D');
 Dsim=h5read(h5,'/Dsim');
@@ -228,8 +228,8 @@ forward_lin=load('caseTomo_Kallerup_dx10_Ffat-none_ME0_slo1_SE2_G0.mat','forward
 G=forward_lin.forward.G;
 
 dx = prior{1}.x(2)-prior{1}.x(1);
-local_x = 1;
-wx = local_x/dx;
+local_x = .5;
+wx = ceil(local_x/dx);
 wy = wx;
 x1 = 0:wx:length(prior{1}.x);
 y1 = 0:wy:length(prior{1}.y);
@@ -267,7 +267,7 @@ for iy = 1:(length(y1)-1)
         logL(i)=-.5*dd'*iCD*dd;
     end
     ns=400;
-    T=1
+    T=4;
     [i_use_all,P_acc]=sippi_abc_post_sample_logl(logL,ns,T);
 
     m_post = M(:,:,i_use_all);
@@ -307,9 +307,12 @@ for iy = 1:(length(y1)-1)
     axis image
     
     drawnow
-    pause(.1)
+    pause(.01)
     
 
 end
 end
 
+if doSave==1
+    save(sprintf('%s_localizwd_wx%d_T%d',txt_h5,wx,T),'-v7.3')
+end
