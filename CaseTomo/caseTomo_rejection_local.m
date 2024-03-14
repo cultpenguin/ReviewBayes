@@ -60,6 +60,7 @@ else
     [~,~,data]=sippi_likelihood(d,data);
 
     N_chunk = 250000;
+    N_chunk = 100000;
     N_loop = ceil(N/N_chunk);
 
     logL=zeros(1,N);
@@ -228,7 +229,7 @@ forward_lin=load('caseTomo_Kallerup_dx10_Ffat-none_ME0_slo1_SE2_G0.mat','forward
 G=forward_lin.forward.G;
 
 dx = prior{1}.x(2)-prior{1}.x(1);
-local_x = .5;
+local_x = 1;
 wx = ceil(local_x/dx);
 wy = wx;
 x1 = 0:wx:length(prior{1}.x);
@@ -267,7 +268,7 @@ for iy = 1:(length(y1)-1)
         logL(i)=-.5*dd'*iCD*dd;
     end
     ns=400;
-    T=4;
+    T=1;
     [i_use_all,P_acc]=sippi_abc_post_sample_logl(logL,ns,T);
 
     m_post = M(:,:,i_use_all);
@@ -309,10 +310,9 @@ for iy = 1:(length(y1)-1)
     drawnow
     pause(.01)
     
-
 end
 end
 
 if doSave==1
-    save(sprintf('%s_localizwd_wx%d_T%d',txt_h5,wx,T),'-v7.3')
+    save(sprintf('%s_localizwd_wx%d_T%d',txt_h5,wx,T),'m_local*','T','wx')
 end
