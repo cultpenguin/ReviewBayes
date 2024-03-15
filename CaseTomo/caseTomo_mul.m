@@ -17,22 +17,23 @@ clear all;useCase='Kallerup';dx=0.10;forward.type='eikonal';is_slowness=0;addSta
 clear all;useCase='Kallerup';dx=0.25;forward.type='eikonal';is_slowness=0;addStaticErr=3;doPriorGaussian=1;caseTomo_setup
 
 
+clear all;useCase='Kallerup';dx=0.10;forward.type='fat';is_slowness=1;addStaticErr=3;caseTomo_setup
 %% The inversions
 
 clear all;fmat='caseTomo_Kallerup_dx10_Feikonal-none_ME0_slo0_SE1_G0.mat';N=1000000;di_use=1;caseTomo_metropolis
 clear all;fmat='caseTomo_Kallerup_dx10_Feikonal-none_ME0_slo0_SE2_G0.mat';N=1000000;di_use=1;caseTomo_metropolis
 clear all;fmat='caseTomo_Kallerup_dx10_Feikonal-none_ME0_slo0_SE1_G0.mat';N=1000000;di_use=1;caseTomo_rejection
 clear all;fmat='caseTomo_Kallerup_dx10_Feikonal-none_ME0_slo0_SE2_G0.mat';N=1000000;di_use=1;caseTomo_rejection
+%%
 
 clear all;fmat='caseTomo_Kallerup_dx10_Feikonal-none_ME0_slo0_SE3_G0.mat';N=1000000;di_use=1;caseTomo_metropolis
 clear all;fmat='caseTomo_Kallerup_dx10_Feikonal-none_ME0_slo0_SE3_G0.mat';N=1000000;di_use=1;caseTomo_rejection
-
 clear all;fmat='caseTomo_Kallerup_dx10_Feikonal-none_ME0_slo0_SE3_G1.mat';N=1000000;di_use=1;caseTomo_metropolis
 clear all;fmat='caseTomo_Kallerup_dx10_Feikonal-none_ME0_slo0_SE3_G1.mat';N=1000000;di_use=1;caseTomo_rejection
 
-
-
-return
+%% Localize rej for paper
+close all
+clear all;fmat='caseTomo_Kallerup_dx10_Feikonal-none_ME0_slo0_SE3_G0.mat';N=10000;di_use=1;caseTomo_rejection_local
 
 %% The Inversions
 % This first one is for Mina

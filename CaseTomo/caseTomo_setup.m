@@ -233,6 +233,9 @@ if ~isfield(forward,'freq'); forward.freq=0.1;end
 forward.forward_function='sippi_forward_traveltime';
 
 m=sippi_prior(prior);
+m0=m{1};
+m0=mean(m0(:))
+m{1}=m{1}*0+mean(m0(:));
 [d,forward]=sippi_forward(m,forward,prior,data);
 if Do_comp_model_error==1;
 
