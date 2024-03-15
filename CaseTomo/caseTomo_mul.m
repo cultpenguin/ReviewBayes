@@ -33,7 +33,10 @@ clear all;fmat='caseTomo_Kallerup_dx10_Feikonal-none_ME0_slo0_SE3_G1.mat';N=1000
 
 %% Localize rej for paper
 close all
-clear all;fmat='caseTomo_Kallerup_dx10_Feikonal-none_ME0_slo0_SE3_G0.mat';N=10000;di_use=1;caseTomo_rejection_local
+%clear all;fmat='caseTomo_Kallerup_dx10_Feikonal-none_ME0_slo0_SE3_G0.mat';N=10000;di_use=1;caseTomo_rejection_local
+%clear all;fmat='caseTomo_Kallerup_dx10_Feikonal-none_ME0_slo0_SE3_G0.mat';N=50000;di_use=1;caseTomo_rejection_local
+%clear all;fmat='caseTomo_Kallerup_dx10_Feikonal-none_ME0_slo0_SE3_G0.mat';N=100000;di_use=1;caseTomo_rejection_local
+clear all;fmat='caseTomo_Kallerup_dx10_Feikonal-none_ME0_slo0_SE3_G0.mat';N=1000000;di_use=1;caseTomo_rejection_local
 
 %% The Inversions
 % This first one is for Mina

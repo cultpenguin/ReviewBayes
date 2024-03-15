@@ -260,8 +260,10 @@ post_mean_local = m0;
 post_std_local = m0;
 post_reals_local=zeros(ny,nx,ns);
 
+k=0;
 for ix = 1:(length(x1)-1)
 for iy = 1:(length(y1)-1)
+    k=k+1;
     x = int16((x1(ix)+1):1:x1(ix+1));
     y = int16((y1(iy)+1):1:y1(iy+1));
     [xx,yy]=meshgrid(x,y);
@@ -281,8 +283,24 @@ for iy = 1:(length(y1)-1)
         dd=dd(id_use);
         logL(i)=-.5*dd'*iCD*dd;
     end
-    T_local=1;
-    [i_use_all,P_acc]=sippi_abc_post_sample_logl(logL,ns,T_local);
+    sort_logL=sort(logL-max(logL));
+    if sum(~isnan(sort_logL))>0
+        if isnan(sort_logL(end))
+            sort_logL=sort_logL(~isnan(sort_logL));
+        end
+        logl_lev=sort_logL(end-N_above-1);
+        
+        T_est_local = logl_lev/log(P_acc_lev);
+        T_est_local = max([1 T_est_local]);
+    else
+        T_est_local = inf;
+    end
+    T_est_local
+    %
+    
+    T_local(k)=1;
+    T_local(k) = T_est_local
+    [i_use_all,P_acc]=sippi_abc_post_sample_logl(logL,ns,T_local(k));
 
     m_post = M(:,:,i_use_all);
     m_post_mean = mean(m_post,3);
@@ -337,6 +355,7 @@ h5writeMatrix(h5,'/post_reals_local',post_reals_local)
 h5writeMatrix(h5,'/post_mean_local',post_mean_local)
 h5writeMatrix(h5,'/post_std_local',post_std_local)
 h5writeMatrix(h5,'/T_local',T_local)
+h5writeMatrix(h5,'/window',[wx,wy])
 
 
 if doSave==1
