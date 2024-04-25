@@ -239,11 +239,15 @@ D=h5read(h5,'/D');
 Dsim=h5read(h5,'/Dsim');
 forward_lin=load('caseTomo_Kallerup_dx10_Ffat-none_ME0_slo1_SE2_G0.mat','forward');
 G=forward_lin.forward.G;
-
+%%
 dx = prior{1}.x(2)-prior{1}.x(1);
-local_x = 1;
+local_x = 1;local_y = local_x;
+local_x = 1.25;local_y = 1.75;
+%local_x = .5;local_y = .7;
+%local_x = 2.4;local_y = local_x;
 wx = ceil(local_x/dx);
-wy = wx;
+wy = ceil(local_y/dx);
+%wy = wx;
 x1 = 0:wx:length(prior{1}.x);
 y1 = 0:wy:length(prior{1}.y);
 if length(prior{1}.x)>(x1(end)+1);
@@ -259,7 +263,10 @@ ns=400;
 post_mean_local = m0;
 post_std_local = m0;
 post_reals_local=zeros(ny,nx,ns);
-
+clear T_local
+clear t
+clear ndata 
+t0=now;
 k=0;
 for ix = 1:(length(x1)-1)
 for iy = 1:(length(y1)-1)
@@ -274,8 +281,12 @@ for iy = 1:(length(y1)-1)
     for ig =1:size(G,1);
          dg(ig)=sum(abs(G(ig,ixy_use)));
     end
+    id_use= find(dg>=0);
     id_use= find(dg>0.001);
-    
+    %id_use= find(dg>0.1);
+    %id_use= find(dg>0.05);
+    id_use= find(dg>0.5);
+    ndata(k)=length(id_use);
     iCD=inv(data{1}.CD(id_use,id_use));
     logL=zeros(1,N);
     for i=1:N
@@ -323,6 +334,8 @@ for iy = 1:(length(y1)-1)
     end
     end
 
+    t(k)=(now-t0)*3600*24;
+
     subplot(1,4,1)
     imagesc(prior{1}.x,prior{1}.y,reshape(sum(G(id_use,:),1),ny,nx))
     axis image;
@@ -351,15 +364,17 @@ end
 
 
 %& save post_reals, post_mean, post_std
+txt_h5_local = sprintf('%s_localized_wx%d_wy%d_T%d',txt_h5,wx,wy,T);
+copyfile([txt_h5,'.h5'],[txt_h5_local,'.h5'])
 h5writeMatrix(h5,'/post_reals_local',post_reals_local)
 h5writeMatrix(h5,'/post_mean_local',post_mean_local)
 h5writeMatrix(h5,'/post_std_local',post_std_local)
-h5writeMatrix(h5,'/T_local',T_local)
+try;h5writeMatrix(h5,'/T_local',T_local);end
 h5writeMatrix(h5,'/window',[wx,wy])
 
 
 if doSave==1
-    save(sprintf('%s_localized_wx%d_T%d',txt_h5,wx,T),'post_*','T*','wx')
+    save([txt_h5_local,'.mat'],'post_*','T*','wx','wy','t','local_x','local_y','ndata')
 end
 
 %%

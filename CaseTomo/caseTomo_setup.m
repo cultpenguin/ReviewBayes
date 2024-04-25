@@ -367,8 +367,52 @@ set(gca,'ydir','reverse')
 print_mul(sprintf('%s_%s',txt,'vapp'))
 
 
+%% RAY COVERAGE + DATA
+figure(10);set_paper;clf
+subplot(1,2,1)
+plot(D.S(:,1),D.S(:,2),'k.')
+hold on
+plot(D.R(:,1),D.R(:,2),'k.')
+colormap(gca,cmap);caxis(cax);
+cb=colorbar;
+set(get(cb,'Ylabel'),'String','Velocity (m/ns)')
 
 
+for i=1:size(D.S,1)
+    %icol=ceil(interp1([cax],[1 size(cmap,1)],vapp(i),'nearest'))
+    icol(i)=ceil(interp1([cax],[1 size(cmap,1)],vapp(i),'linear','extrap'));
+    if vapp(i)<cax(1);icol(i)=1;end
+    if vapp(i)>cax(2);icol(i)=size(cmap,1);end
+    lw=2*(vapp-0.1)./(0.1);
+    lw(lw<0.01)=0.01;
+    plot([D.S(i,1),D.R(i,1)],[D.S(i,2),D.R(i,2)],'-','LineWidth',lw(i),'MarkerSize',1,'Color',cmap(icol(i),:))
+    %plot([D.S(i,1),D.R(i,1)],[D.S(i,2),D.R(i,2)],'-','LineWidth',.1)
+end
+grid on
+hold off
+axis image
+axis(ax)
+set(gca,'ydir','reverse')
+title('a) Geometry+ apparent velocity')
+
+subplot(2,2,2)
+plot(data{1}.d_obs,'k-','LineWidth',1.5)
+xlabel('Data #')
+ylabel('travel time (ns)')
+title('b) Observed data, y')
+%legend({'d_{obs}','g(m)'})
+
+subplot(2,2,4)
+imagesc(data{1}.Ct);
+axis image;
+colorbar
+xlabel('Data #')
+ylabel('Data #')
+title('c) Data covariance')
+
+print_mul(sprintf('%s_%s',txt,'vapp2'))
+
+return
 
 %% Frechet
 if doComputeFrechet==1;
