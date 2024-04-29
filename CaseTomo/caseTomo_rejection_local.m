@@ -281,11 +281,17 @@ for iy = 1:(length(y1)-1)
     for ig =1:size(G,1);
          dg(ig)=sum(abs(G(ig,ixy_use)));
     end
-    id_use= find(dg>=0);
-    id_use= find(dg>0.001);
+    dg_sort=fliplr(sort(dg));
+    dg_perc = 0.1;
+    dg_perc = 0.2;
+    dg_perc = 0.3;
+    dg_thres = dg_sort(ceil(dg_perc*length(dg_sort)));
+    %dg_thres = min([dg_thres,0.5])
+    id_use= find(dg>=dg_thres);
+    %id_use= find(dg>0.001);
     %id_use= find(dg>0.1);
     %id_use= find(dg>0.05);
-    id_use= find(dg>0.5);
+    %id_use= find(dg>0.5);
     ndata(k)=length(id_use);
     iCD=inv(data{1}.CD(id_use,id_use));
     logL=zeros(1,N);
@@ -364,18 +370,21 @@ end
 
 
 %& save post_reals, post_mean, post_std
-txt_h5_local = sprintf('%s_localized_wx%d_wy%d_T%d',txt_h5,wx,wy,T);
-copyfile([txt_h5,'.h5'],[txt_h5_local,'.h5'])
-h5writeMatrix(h5,'/post_reals_local',post_reals_local)
-h5writeMatrix(h5,'/post_mean_local',post_mean_local)
-h5writeMatrix(h5,'/post_std_local',post_std_local)
-try;h5writeMatrix(h5,'/T_local',T_local);end
-h5writeMatrix(h5,'/window',[wx,wy])
+txt_h5_local = sprintf('%s_localized_wx%d_wy%d_T%d_P%03d',txt_h5,wx,wy,T,ceil(100*dg_perc));
+h5_local= [txt_h5_local,'.h5'];
+copyfile(h5,h5_local)
+
+h5writeMatrix(h5_local,'/post_reals_local',post_reals_local)
+h5writeMatrix(h5_local,'/post_mean_local',post_mean_local)
+h5writeMatrix(h5_local,'/post_std_local',post_std_local)
+try;h5writeMatrix(h5_local,'/T_local',T_local);end
+h5writeMatrix(h5_local,'/window',[wx,wy])
 
 
 if doSave==1
-    save([txt_h5_local,'.mat'],'post_*','T*','wx','wy','t','local_x','local_y','ndata')
+    save([txt_h5_local,'.mat'],'post_*','T*','wx','wy','t','local_x','local_y','ndata','dg_perc')
 end
 
-%%
-caseTomo_plot_post_stats(post_reals_local_flat,prior_reals,prior,[txt_out,'_local']);
+%
+%caseTomo_plot_post_stats(post_reals_local_flat,prior_reals,prior,[txt_out,'_local']);
+caseTomo_plot_post_stats(post_reals_local_flat,prior_reals,prior,txt_h5_local);
