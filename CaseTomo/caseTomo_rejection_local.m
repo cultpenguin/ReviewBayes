@@ -237,8 +237,7 @@ close all
 M=h5read(h5,'/M');
 D=h5read(h5,'/D');
 Dsim=h5read(h5,'/Dsim');
-%forward_lin=load('caseTomo_Kallerup_dx10_Ffat-none_ME0_slo1_SE2_G0.mat','forward');
-forward_lin=load(fmat,'forward');
+forward_lin=load('caseTomo_Kallerup_dx10_Ffat-none_ME0_slo1_SE3_G0','forward');
 G=forward_lin.forward.G;
 %%
 dx = prior{1}.x(2)-prior{1}.x(1);
