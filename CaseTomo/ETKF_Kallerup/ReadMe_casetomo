@@ -1,0 +1,112 @@
+# Read me file for running the Kallerup Tomography case #
+
+This is a ReadMe file for the code following the Case of Kallerup as described in the paper "Local conditioning in sampling methods with example cases in subsurface inversion"
+It performs velocity inversion with three different methods, LERS, LETKF and MH. Details of these can be found in the abovementioned paper. 
+Here you can find:
+- necessary packages to run the code in R (only the R part of the code)
+- what version of R it has been run on and tested with
+- file structure and the purpose of each of the R scripts
+
+GUI for R is RStudio, but it is completely optional. If RStudio is used, on MacOS, remember to have xQuartz installed (https://www.xquartz.org/). 
+
+NB! If you are a MacOS user, for the plotting functionality, when using RStudio asa 
+
+NB! Matlab code is necessary to run if one wishes to generate different realizations or wants to make adjustments to the code generating the prior realizations and synthetic data. Additionally LERS and MH code is implemented in matlab. However, these results are available as data files which can be importend in R, where one can do further analysis and plotting with them. LETKF is implemented in R. 
+
+### Necessary pacakges for the code to be run in R ###
+Alternative 1: Manually install the following packages using function install.packages("package_name")
+- R.matlab
+- rhdf5
+- PlaneGeometry
+- fields
+- viridis
+- paletteer
+- igraph
+- raster
+- RColorBrewer
+
+
+
+Alterntive 2: Use script "install_and_load_packages.R" 
+Here one automatically installs the necessary packages using the script, one can also opt for
+Loading them immediately (this is not necessary as all the sripts load the packages when needed)
+
+
+Version of R and computer system that the code is run and tested on:
+
+R version 4.3.3 (2024-02-29)
+Platform: x86_64-apple-darwin20 (64-bit)
+Running under: macOS Monterey 12.7
+
+Matrix products: default
+BLAS:   /System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks/vecLib.framework/Versions/A/libBLAS.dylib 
+LAPACK: /Library/Frameworks/R.framework/Versions/4.3-x86_64/Resources/lib/libRlapack.dylib;  LAPACK version 3.11.0
+
+
+
+### File structure and purpose of each of the scripts ### 
+
+*The files are presented in the order in which they should be run*
+
+1)
+Prior realizations are obtained using the matlab-code, running caseTomo_mul.m file.
+Simulated data from the realizations are obtained using the matlab-code.
+These are saved to the files with following names or similar
+- "caseTomo_Kallerup_dx10_Feikonal-none_ME0_slo0_SE3_G0_rejection_N1000000_di1_out.h5"
+Results from rejection sampler is in the file with the following name
+- "caseTomo_Kallerup_dx10_Feikonal-none_ME0_slo0_SE3_G0_rejection_N1000000_di1_out.h5"
+Results from MH is in the file with the following name
+- "caseTomo_Kallerup_dx10_Feikonal-none_ME0_slo0_SE3_G0_metropolis_N1000000_di1.mat"
+
+To load these files, extract the necessary variables and save them for easier accessibility
+run the following file, while making sure that paths to these two files are correct
+"load_mat_h5_files.R"
+This file needs to be run only the first time, or whenever the prior or synthetic data is changed.
+
+2)
+To load prior realizations, synthetic data, observations and observation errors, 
+In addition the script loads the source and receiver locations. 
+To obtain the abovementioned, run the following file:
+"load_prior_and_obs_Kallerup.R"
+
+3)
+To run the NS-LETKF methods on this case use file "ns_letkf_complete.R" 
+Make sure that you have completed step 1) beforehand
+Step 2) is also necessary, however, this is automatically sources by running the "ns_letkf_complete.R"
+
+The code runs LETKF on the Kallerup case and saves the results along with the time. 
+Important, or interesting variables that can be changes are size of the localization patch and the ensemble size. Otherwise, refer to the comments in the script.
+
+4) 
+The following script 
+"kallerup_load_results_plot.R"
+Loads all the results and files, sets up the grid for necessary plotting of the results and then plots all the resuls and saves them to separate files. At the moment, the file extension used is png, and if another extension is preferred, one can change the command to pdf, tiff or similar. For the tutorial and instructions on this we refer to the world wide web.
+
+
+
+5)
+The following script 
+"connectedness_water.R"
+loads all the results and files along with setting up the grid for the problem such that new results and analysis are plottable. For more details refer to the comments in the code file. 
+The script calculates connectedness and plots it for each of the methods in questions along with fincding the distribution of the sizes of the largest connected area in a prespecified subsection of the domain. From these results, figures for the density for each of the different methods are produced. 
+
+
+
+Following scripts are including only supposting functions needed for the other main scripts to run
+- "line_crossing.R"
+This script geometrically finds the lines which are crossing a pre-specified rectangle
+- "functions_support.R"
+This script includes the ETKF function and a function finding intercept and gradient of a line
+
+
+### If you want, you can just run all the points above after each other using source("filename.R") function, for each of the files, and all the results will pop up in your folders (you will have to adjust the paths in the fiels above, if you are using your own file structure)
+
+### Other issues you might encounter and their solutions ### 
+
+- Possible issue with installing package "PlaneGeometry"
++ Could be an issue with lack of "mpfr" package, a multiple precision floating point library 
+Make sure this is installed on your machine, and make sure the header files are in (i/usr/include), they are necessary for the packages to install.
+
+
+- Issues with visualization
++ Have you remembered to install xQuartz if you are macOS user?
