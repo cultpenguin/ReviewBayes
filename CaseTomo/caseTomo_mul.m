@@ -1,10 +1,21 @@
 %% Manus
+progress_out('Setting up Kallerup dx=0.1, eikonal',1)
 clear all;useCase='Kallerup';dx=0.10;forward.type='eikonal';is_slowness=0;addStaticErr=3;caseTomo_setup
+progress_out('Setting up Kallerup dx=0.1, fat')
 clear all;useCase='Kallerup';dx=0.10;forward.type='fat';is_slowness=1;addStaticErr=3;caseTomo_setup
 
+%%
+progress_out('Starting Metropolis')
 clear all;fmat='caseTomo_Kallerup_dx10_Feikonal-none_ME0_slo0_SE3_G0.mat';N=1000000;di_use=1;caseTomo_metropolis
+progress_out('End Metropolis')
+
+%%
+progress_out('Starting Rejection')
 clear all;fmat='caseTomo_Kallerup_dx10_Feikonal-none_ME0_slo0_SE3_G0.mat';N=1000000;di_use=1;caseTomo_rejection
+progress_out('End Rejection')
+progress_out('Starting Local Rejection')
 clear all;fmat='caseTomo_Kallerup_dx10_Feikonal-none_ME0_slo0_SE3_G0.mat';N=1000000;di_use=1;caseTomo_rejection_local
+progress_out('end Local Rejection')
 
 return 
 
