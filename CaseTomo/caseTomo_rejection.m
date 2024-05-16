@@ -27,9 +27,11 @@ txt_h5=sprintf('%s_rejection_N%d_di%d_out',txt,N,di_use)
 h5=[txt_h5,'.h5'];
 
 if exist([txt_h5,'.mat'],'file')
-    load(txt_h5)
+    progress_out(['-- Rejection: Loading Lookup Table from ',txt_h5])   
+    load(txt_h5)    
 else
     %%
+    progress_out('-- Rejection: Setting up Lookup Table')
     clc
     delete(h5)
     h5create(h5,'/D',[Nd,N],'ChunkSize',[Nd,1])
@@ -139,6 +141,8 @@ else
 end
 %% SAVE AS HDF5??
 
+progress_out('-- Rejection: Starting Sampling')
+
 %% Rejection
 % Compute evidence
 maxlogL=max(logL);
@@ -184,6 +188,7 @@ txt_out = sprintf('%s_rejection_N%d_di%d_T%d',txt,N,di_use,T);
 disp(txt_out)
 save(txt_out)
 
+progress_out('-- Rejection: Stopping Sampling')
 
 %%
 

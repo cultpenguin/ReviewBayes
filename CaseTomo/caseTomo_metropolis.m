@@ -44,8 +44,10 @@ else
     options.mcmc.anneal.T_end=T_end; % End temperature for annealing
     
     try;options.txt=txt;end;
+    progress_out('-- Metropolis: Starting Sampling')
     options=sippi_metropolis(data,prior,forward,options);
-
+    progress_out('-- Metropolis: Stopped Sampling')
+    
     %%
     [reals,etype_mean,etype_var,reals_all,reals_ite]=sippi_get_sample(options.txt,1,100,1);
 

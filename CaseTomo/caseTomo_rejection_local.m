@@ -29,9 +29,11 @@ txt_h5=sprintf('%s_rejection_N%d_di%d_out',txt,N,di_use)
 h5=[txt_h5,'.h5'];
 
 if exist([txt_h5,'.mat'],'file')
+    progress_out(['-- Rejection: Loading Lookup Table from ',txt_h5])
     load(txt_h5)
 else
     %%
+    progress_out('-- Rejection: Setting up Lookup Table')
     clc
     delete(h5)
     h5create(h5,'/D',[Nd,N],'ChunkSize',[Nd,1])
@@ -143,6 +145,7 @@ end
 %% SAVE AS HDF5??
 
 %% Rejection
+progress_out('-- Rejection: Starting Sampling')
 % Compute evidence
 maxlogL=max(logL);
 log_evidence = maxlogL + log( nansum(exp(logL-maxlogL))/length(logL) );
@@ -195,6 +198,7 @@ h5writeMatrix(h5,'/post_mean',post_mean)
 h5writeMatrix(h5,'/post_std',post_std)
 h5writeMatrix(h5,'/T',T)
 
+progress_out('-- Rejection: Stopping Sampling')
 
 %& save post_reals, post_mean, post_std
 
@@ -233,6 +237,9 @@ print_mul(sprintf('%s_anneal',txt_out))
 
 
 %% LOCAL
+
+progress_out('-- Rejection Local: Setting up local rejection')
+
 close all
 M=h5read(h5,'/M');
 D=h5read(h5,'/D');
@@ -259,6 +266,8 @@ end
 m=sippi_prior(prior);
 m0 = m{1}.*0;
 
+progress_out('-- Rejection Local: Starting sampling')
+
 ns=400;
 post_mean_local = m0;
 post_std_local = m0;
@@ -270,6 +279,7 @@ t0=now;
 k=0;
 for ix = 1:(length(x1)-1)
 for iy = 1:(length(y1)-1)
+    progress_out(sprintf('-- Rejection Local: start subset [%d,%d]',ix,iy))
     k=k+1;
     x = int16((x1(ix)+1):1:x1(ix+1));
     y = int16((y1(iy)+1):1:y1(iy+1));
@@ -367,6 +377,9 @@ for i=1:ns
     mm=post_reals_local(:,:,i);
     post_reals_local_flat(i,:)=mm(:);
 end
+
+
+progress_out('-- Rejection Local: Stopped')
 
 
 %& save post_reals, post_mean, post_std

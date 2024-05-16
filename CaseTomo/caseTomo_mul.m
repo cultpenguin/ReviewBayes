@@ -9,13 +9,12 @@ progress_out('Starting Metropolis')
 clear all;fmat='caseTomo_Kallerup_dx10_Feikonal-none_ME0_slo0_SE3_G0.mat';N=1000000;di_use=1;caseTomo_metropolis
 progress_out('End Metropolis')
 
-%%
 progress_out('Starting Rejection')
 clear all;fmat='caseTomo_Kallerup_dx10_Feikonal-none_ME0_slo0_SE3_G0.mat';N=1000000;di_use=1;caseTomo_rejection
 progress_out('End Rejection')
 progress_out('Starting Local Rejection')
 clear all;fmat='caseTomo_Kallerup_dx10_Feikonal-none_ME0_slo0_SE3_G0.mat';N=1000000;di_use=1;caseTomo_rejection_local
-progress_out('end Local Rejection')
+progress_out('End Local Rejection')
 
 return 
 
