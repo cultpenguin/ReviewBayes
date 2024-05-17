@@ -11,10 +11,13 @@ if ~exist('Nr','var');Nr=400;end
 if ~exist('useRejection','var');useRejection=1;end
 
 %% Setup ABC
+progress_out('-- AVO Setup')
 CaseAVO_setup
+progress_out('-- AVO ABC Setup')
 CaseAVO_setup_ABC
 
 %% multest prior(post
+progress_out('-- Start Prior test')
 %id_arr=[1,1000,10000,40000];
 rng(1);
 id_arr=randomsample(Nd,4);
@@ -94,7 +97,10 @@ t0=now;
 %doPlot=4;
 time_sampling_0=now;
 
+progress_out('-- Start Inversion')
+
 if useRejection==1
+    progress_out('-- Start Inversion REJECTION=1')
     parfor id=1:Nd;
         if mod(id,1000)==0,
             [t_end_txt,t_left_seconds]=time_loop_end(t0,id,Nd);
@@ -117,6 +123,7 @@ if useRejection==1
 end
 
 if useRejection==0
+    progress_out('-- Start Inversion REJECTION=0')
     i_sample = 100;
     for id=1:Nd;
         %parfor id=1:Nd;
@@ -155,7 +162,9 @@ if useRejection==0
     end
 end
 time_sampling_1=now;
+progress_out('-- END Inversion')
 %%
+progress_out('-- Post stat')
 parfor id=1:Nd;
     if mod(id,1000)==0,
         [t_end_txt,t_left_seconds]=time_loop_end(t0,id,Nd);
