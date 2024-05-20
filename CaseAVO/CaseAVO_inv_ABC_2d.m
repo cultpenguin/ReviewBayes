@@ -12,7 +12,9 @@ if ~exist('Nr','var');Nr=400;end
 if ~exist('useRejection','var');useRejection=1;end
 
 %% Setup ABC
+progress_out('--> START CaseAVO_setup')
 CaseAVO_setup
+progress_out('--> END CaseAVO_setup')
 
 
 %%
@@ -32,7 +34,7 @@ R_v_clay=zeros(Nd,Nr);
 
 %%
 time_sampling_0=now;
-
+progress_out('--> START SAMPLING')
 for id=1:length(data_mul)
     if mod(id,1000)==0
         progress_txt(id,Nd);
@@ -87,6 +89,7 @@ for id=1:length(data_mul)
     R_v_clay(id,:)=D_v_clay_log(id,i_use_all);
 
 end
+progress_out('--> END SAMPLING')
 time_sampling_1=now;
 time_sampling=(time_sampling_1-time_sampling_0)*3600*24;
 %%
