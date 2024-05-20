@@ -94,6 +94,7 @@ caxis([-1 1].*.2);colormap(gca,cmap_linear)
 colorbar
 
 %% Setup ABC
+progress_out(sprintf('%s: Setup ABC start',mfilename))
 disp('Setup ABC')
 clear ABC
 Nlu=min([N Nlu]);
@@ -147,7 +148,7 @@ end
 
 Nlu=length(ABC.m);
 
-
+progress_out(sprintf('%s: Setup ABC end',mfilename))
 %%
 
 
@@ -273,6 +274,8 @@ doComputePriorStat=1;
 %parfor id=1:Nd
 t0=now;
 %doPlot=4;
+progress_out(sprintf('%s: Start inversion',mfilename))
+
 parfor id=1:Nd;
     %for id=1:Nd;
     if mod(id,2000)==0,
@@ -353,6 +356,7 @@ parfor id=1:Nd;
     end
 
 end
+progress_out(sprintf('%s: end inversion',mfilename))
 
 M_sat_g=reshape(mean(R_sat_g'),ny,nx);
 M_sat_o=reshape(mean(R_sat_o'),ny,nx);

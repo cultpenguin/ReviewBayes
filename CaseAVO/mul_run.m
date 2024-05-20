@@ -16,3 +16,12 @@ progress_out('Start case 2')
 clear all;close all;useCase=2;Nlu=50000;Nr=400;useRejection=1;CaseAVO_inv_ABC
 progress_out('Start case 3, eikonal')
 
+%%
+delete('case*mat')
+delete('MINA*mat')
+progress_out('START mina_load')
+mina_load
+progress_out('END mina_load')
+
+
+
