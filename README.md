@@ -2,8 +2,6 @@
 
 ## CaseAVO
 
-## CaseEM
-
 
 ## CaseTomo -- KALLERUP GPR DATA
 The data are available through 
