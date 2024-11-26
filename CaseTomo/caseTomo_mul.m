@@ -16,6 +16,34 @@ progress_out('Starting Local Rejection')
 clear all;fmat='caseTomo_Kallerup_dx10_Feikonal-none_ME0_slo0_SE3_G0.mat';N=1000000;di_use=1;caseTomo_rejection_local
 progress_out('End Local Rejection')
 
+%% FOR REVIEW
+clear all;fmat='caseTomo_Kallerup_dx10_Feikonal-none_ME0_slo0_SE3_G0.mat';N=1000000;di_use=1;wx=30; wy=30;caseTomo_rejection_local
+clear all;fmat='caseTomo_Kallerup_dx10_Feikonal-none_ME0_slo0_SE3_G0.mat';N=1000000;di_use=1;wx=20; wy=20;caseTomo_rejection_local
+clear all;fmat='caseTomo_Kallerup_dx10_Feikonal-none_ME0_slo0_SE3_G0.mat';N=1000000;di_use=1;wx=10; wy=10;caseTomo_rejection_local
+clear all;fmat='caseTomo_Kallerup_dx10_Feikonal-none_ME0_slo0_SE3_G0.mat';N=1000000;di_use=1;wx=5; wy=5;caseTomo_rejection_local
+clear all;fmat='caseTomo_Kallerup_dx10_Feikonal-none_ME0_slo0_SE3_G0.mat';N=1000000;di_use=1;wx=2; wy=2;caseTomo_rejection_local
+clear all;fmat='caseTomo_Kallerup_dx10_Feikonal-none_ME0_slo0_SE3_G0.mat';N=1000000;di_use=1;wx=1; wy=1;caseTomo_rejection_local
+% orig
+clear all;fmat='caseTomo_Kallerup_dx10_Feikonal-none_ME0_slo0_SE3_G0.mat';N=1000000;di_use=1;wx=13, wy=18;caseTomo_rejection_local
+
+%%
+clear all;fmat='caseTomo_Kallerup_dx10_Feikonal-none_ME0_slo0_SE3_G0.mat';N=1000000;di_use=1;writeH5=0;
+wx=25; wy=25; dg_perc=0.02;caseTomo_rejection_local
+
+clear all;fmat='caseTomo_Kallerup_dx10_Feikonal-none_ME0_slo0_SE3_G0.mat';N=1000000;di_use=1;writeH5=0;
+wx=25; wy=25; dg_perc=0.1;caseTomo_rejection_local
+
+clear all;fmat='caseTomo_Kallerup_dx10_Feikonal-none_ME0_slo0_SE3_G0.mat';N=1000000;di_use=1;writeH5=0;
+wx=25; wy=25; dg_perc=0.3;caseTomo_rejection_local
+
+clear all;fmat='caseTomo_Kallerup_dx10_Feikonal-none_ME0_slo0_SE3_G0.mat';N=1000000;di_use=1;writeH5=0;
+wx=25; wy=25; dg_perc=0.5;caseTomo_rejection_local
+
+clear all;fmat='caseTomo_Kallerup_dx10_Feikonal-none_ME0_slo0_SE3_G0.mat';N=1000000;di_use=1;writeH5=0;
+wx=25; wy=25; dg_perc=1.0;caseTomo_rejection_local
+
+
+
 return 
 
 %% Setup / Parameterization

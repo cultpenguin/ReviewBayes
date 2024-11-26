@@ -193,11 +193,13 @@ disp(txt_out)
 post_mean = reshape(m_mean,ny,nx);
 post_std = sqrt(reshape(m_var,ny,nx));
 
-h5writeMatrix(h5,'/post_reals',post_reals_2d)
-h5writeMatrix(h5,'/post_mean',post_mean)
-h5writeMatrix(h5,'/post_std',post_std)
-h5writeMatrix(h5,'/T',T)
-
+if ~exist('writeH5','var'),writeH5=1;end
+if writeH5>0
+    h5writeMatrix(h5,'/post_reals',post_reals_2d)
+    h5writeMatrix(h5,'/post_mean',post_mean)
+    h5writeMatrix(h5,'/post_std',post_std)
+    h5writeMatrix(h5,'/T',T)
+end
 progress_out('-- Rejection: Stopping Sampling')
 
 %& save post_reals, post_mean, post_std
@@ -248,13 +250,19 @@ forward_lin=load('caseTomo_Kallerup_dx10_Ffat-none_ME0_slo1_SE3_G0','forward');
 G=forward_lin.forward.G;
 %%
 dx = prior{1}.x(2)-prior{1}.x(1);
-local_x = 1;local_y = local_x;
-local_x = 1.25;local_y = 1.75;
-%local_x = .5;local_y = .7;
-%local_x = 2.4;local_y = local_x;
-wx = ceil(local_x/dx);
-wy = ceil(local_y/dx);
-%wy = wx;
+
+if ~exist('wx')
+    if ~exist('local_x');local_x = 1.25;end
+    wx = ceil(local_x/dx);
+end
+if ~exist('wy')
+    if ~exist('local_y');local_y = 1.75;end
+    wy = ceil(local_y/dx);
+end
+if ~exist('local_x');local_x = wx*dx;end
+if ~exist('local_y');local_y = wy*dx;end
+
+
 x1 = 0:wx:length(prior{1}.x);
 y1 = 0:wy:length(prior{1}.y);
 if length(prior{1}.x)>(x1(end)+1);
@@ -292,9 +300,11 @@ for iy = 1:(length(y1)-1)
          dg(ig)=sum(abs(G(ig,ixy_use)));
     end
     dg_sort=fliplr(sort(dg));
-    dg_perc = 0.1;
-    dg_perc = 0.2;
-    dg_perc = 0.3;
+    if ~exist('dg_perc','var')
+        dg_perc = 0.1;
+        dg_perc = 0.2;
+        dg_perc = 0.3;
+    end
     dg_thres = dg_sort(ceil(dg_perc*length(dg_sort)));
     %dg_thres = min([dg_thres,0.5])
     id_use= find(dg>=dg_thres);
@@ -384,17 +394,20 @@ progress_out('-- Rejection Local: Stopped')
 
 %& save post_reals, post_mean, post_std
 txt_h5_local = sprintf('%s_localized_wx%d_wy%d_T%d_P%03d',txt_h5,wx,wy,T,ceil(100*dg_perc));
-h5_local= [txt_h5_local,'.h5'];
-copyfile(h5,h5_local)
+if ~exist('writeH5','var'),writeH5=1;end
+if writeH5>0
+    disp(sprintf('%s: %s',mfilename,txt_h5_local))
+    h5_local= [txt_h5_local,'.h5'];
+    copyfile(h5,h5_local)
+    
+    h5writeMatrix(h5_local,'/post_reals_local',post_reals_local)
+    h5writeMatrix(h5_local,'/post_mean_local',post_mean_local)
+    h5writeMatrix(h5_local,'/post_std_local',post_std_local)
+    try;h5writeMatrix(h5_local,'/T_local',T_local);end
+    h5writeMatrix(h5_local,'/window',[wx,wy])
+end
 
-h5writeMatrix(h5_local,'/post_reals_local',post_reals_local)
-h5writeMatrix(h5_local,'/post_mean_local',post_mean_local)
-h5writeMatrix(h5_local,'/post_std_local',post_std_local)
-try;h5writeMatrix(h5_local,'/T_local',T_local);end
-h5writeMatrix(h5_local,'/window',[wx,wy])
-
-
-if doSave==1
+if doSave==1   
     save([txt_h5_local,'.mat'],'post_*','T*','wx','wy','t','local_x','local_y','ndata','dg_perc')
 end
 
