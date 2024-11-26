@@ -276,9 +276,10 @@ m0 = m{1}.*0;
 
 progress_out('-- Rejection Local: Starting sampling')
 
-ns=400;
+ns=500;
 post_mean_local = m0;
 post_std_local = m0;
+T_grid = m0;
 post_reals_local=zeros(ny,nx,ns);
 clear T_local
 clear t
@@ -332,11 +333,13 @@ for iy = 1:(length(y1)-1)
     else
         T_est_local = inf;
     end
-    T_est_local
+    T_est_local;
     %
-    
     T_local(k)=1;
     T_local(k) = T_est_local
+    
+    T_grid(m_use==1)=T_local(k);
+    
     [i_use_all,P_acc]=sippi_abc_post_sample_logl(logL,ns,T_local(k));
 
     m_post = M(:,:,i_use_all);
@@ -362,19 +365,25 @@ for iy = 1:(length(y1)-1)
 
     t(k)=(now-t0)*3600*24;
 
-    subplot(1,4,1)
+    subplot(2,3,1)
     imagesc(prior{1}.x,prior{1}.y,reshape(sum(G(id_use,:),1),ny,nx))
     axis image;
-    subplot(1,4,2)
+    subplot(2,3,2)
     imagesc(prior{1}.x,prior{1}.y,m_use)
     axis image
-    subplot(1,4,3)
+    subplot(2,3,4)
     imagesc(prior{1}.x,prior{1}.y,post_mean_local)
     caxis([0.0700    0.1800])
     colormap(gca,jet)
     axis image
-    subplot(1,4,4)
+    subplot(2,3,5)
     imagesc(prior{1}.x,prior{1}.y,post_std_local)
+    axis image
+    subplot(2,3,6)
+    imagesc(prior{1}.x,prior{1}.y,T_grid)
+    cax=caxis;cax(1)=1;caxis(cax)
+    colormap(gca,'hot')
+    colorbar
     axis image
     
     drawnow
@@ -387,7 +396,6 @@ for i=1:ns
     mm=post_reals_local(:,:,i);
     post_reals_local_flat(i,:)=mm(:);
 end
-
 
 progress_out('-- Rejection Local: Stopped')
 
@@ -404,8 +412,18 @@ if writeH5>0
     h5writeMatrix(h5_local,'/post_mean_local',post_mean_local)
     h5writeMatrix(h5_local,'/post_std_local',post_std_local)
     try;h5writeMatrix(h5_local,'/T_local',T_local);end
+    try;h5writeMatrix(h5_local,'/T_grid',T_grid);end
     h5writeMatrix(h5_local,'/window',[wx,wy])
 end
+
+
+figure_focus(4);clf
+imagesc(prior{1}.x,prior{1}.y,T_grid)
+cax=caxis;cax(1)=1;caxis(cax)
+colormap(gca,'hot')
+colorbar
+axis image
+print_mul([txt_h5_local,'_T'])
 
 if doSave==1   
     save([txt_h5_local,'.mat'],'post_*','T*','wx','wy','t','local_x','local_y','ndata','dg_perc')

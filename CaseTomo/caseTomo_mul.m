@@ -26,7 +26,14 @@ clear all;fmat='caseTomo_Kallerup_dx10_Feikonal-none_ME0_slo0_SE3_G0.mat';N=1000
 % orig
 clear all;fmat='caseTomo_Kallerup_dx10_Feikonal-none_ME0_slo0_SE3_G0.mat';N=1000000;di_use=1;wx=13, wy=18;caseTomo_rejection_local
 
-%%
+% test small subsets 5X5
+clear all;fmat='caseTomo_Kallerup_dx10_Feikonal-none_ME0_slo0_SE3_G0.mat';N=1000000;di_use=1;writeH5=0;
+wx=5; wy=5; dg_perc=0.05;caseTomo_rejection_local
+
+clear all;fmat='caseTomo_Kallerup_dx10_Feikonal-none_ME0_slo0_SE3_G0.mat';N=1000000;di_use=1;writeH5=0;
+wx=5; wy=5; dg_perc=0.30;caseTomo_rejection_local
+
+% test DPErc
 clear all;fmat='caseTomo_Kallerup_dx10_Feikonal-none_ME0_slo0_SE3_G0.mat';N=1000000;di_use=1;writeH5=0;
 wx=25; wy=25; dg_perc=0.02;caseTomo_rejection_local
 

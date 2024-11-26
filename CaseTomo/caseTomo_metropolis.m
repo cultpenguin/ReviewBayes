@@ -29,8 +29,8 @@ else
     %% SETUP METROPOLIS
     options.mcmc.nite=N;
     n1=ceil(N/10);
-    options.mcmc.i_plot=ceil(options.mcmc.nite/50);
-    options.mcmc.n_reals=200;
+    options.mcmc.i_plot=ceil(options.mcmc.nite/100);
+    options.mcmc.n_reals=500;
     %i_sample=ceil(options.mcmc.nite/n_reals_out);
     randn('seed',2);rand('seed',2);
     %options.mcmc.T=1;
