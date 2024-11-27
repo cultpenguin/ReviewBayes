@@ -180,6 +180,7 @@ for i=1:length(i_sample)
     mm=m_post(:,:,i);
     post_reals(i,:)=mm(:);
 end
+logL_post = logL(i_sample)
 n_post=size(m_post,3);
 
 [m_mean,m_var]  = etype(m_post);
@@ -190,7 +191,15 @@ save(txt_out)
 
 progress_out('-- Rejection: Stopping Sampling')
 
-%%
+%% plot logL
+figrue_focus(22);clf;
+histogram(logL, 'Normalization', 'pdf');
+hold on
+histogram(logL_post, 'Normalization', 'pdf');
+hold off
+legend({'prior','post'})
+xlabel('logL')
+print_mul(sprintf('%s_logL',txt_out))
 
 %% sample prior
 clear prior_reals

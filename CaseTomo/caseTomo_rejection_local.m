@@ -184,6 +184,7 @@ for i=1:length(i_sample)
     post_reals_2d(:,:,i)=mm;
 end
 n_post=size(m_post,3);
+logL_post = logL(i_sample)
 
 [m_mean,m_var]  = etype(m_post);
 
@@ -400,7 +401,7 @@ end
 progress_out('-- Rejection Local: Stopped')
 
 
-%& save post_reals, post_mean, post_std
+%% save post_reals, post_mean, post_std
 txt_h5_local = sprintf('%s_localized_wx%d_wy%d_T%d_P%03d',txt_h5,wx,wy,T,ceil(100*dg_perc));
 if ~exist('writeH5','var'),writeH5=1;end
 if writeH5>0
@@ -426,6 +427,21 @@ colorbar
 axis image
 print_mul([txt_h5_local,'_T'])
 
+%% compute logL
+for i=1:ns
+    progress_txt(i,ns,'post likelihood')
+    m_test{1}=post_reals_local(:,:,i);
+    d_post=sippi_forward(m_test,forward,prior);
+    logL_post(i) = sippi_likelihood(d_post,data);
+end
+figure_focus(21);clf
+histogram(logL_post, 'Normalization', 'pdf');
+hold off
+legend({'prior','post'})
+xlabel('logL')
+print_mul(sprintf('%s_logL',txt_h5_local))
+
+%%
 if doSave==1   
     save([txt_h5_local,'.mat'],'post_*','T*','wx','wy','t','local_x','local_y','ndata','dg_perc')
 end
