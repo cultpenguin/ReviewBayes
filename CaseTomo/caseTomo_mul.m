@@ -37,7 +37,6 @@ local_y = 1.4;
 caseTomo_rejection_local
 
 
-
 %%
 return
 
