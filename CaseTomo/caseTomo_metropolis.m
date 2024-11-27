@@ -50,7 +50,8 @@ else
     
     %%
     [reals,etype_mean,etype_var,reals_all,reals_ite]=sippi_get_sample(options.txt,1,100,1);
-
+    logL_all=options.C{1}.mcmc.logL;
+    logL_post=logL_all((options.mcmc.anneal.i_end*2):end);
     %%
     if doSave==1
         save(txt_out,'-v7.3')
