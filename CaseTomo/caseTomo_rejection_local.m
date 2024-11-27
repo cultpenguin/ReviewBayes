@@ -381,7 +381,7 @@ for iy = 1:(length(y1)-1)
     axis image
     subplot(2,3,6)
     imagesc(prior{1}.x,prior{1}.y,T_grid)
-    cax=caxis;cax(1)=1;caxis(cax)
+    cax=caxis;cax(1)=1;cax=caxis;cax(1)=1;cax(2)=cax(2)*1.01;caxis(cax);caxis(cax);
     colormap(gca,'hot')
     colorbar
     axis image
@@ -419,7 +419,8 @@ end
 
 figure_focus(4);clf
 imagesc(prior{1}.x,prior{1}.y,T_grid)
-cax=caxis;cax(1)=1;caxis(cax)
+cax=caxis;cax(1)=1;cax(2)=cax(2)*1.01;caxis(cax)
+caxis([0 10])
 colormap(gca,'hot')
 colorbar
 axis image

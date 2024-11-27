@@ -7,6 +7,7 @@ clear all;useCase='Kallerup';dx=0.10;forward.type='fat';is_slowness=1;addStaticE
 %%
 progress_out('Starting Metropolis')
 clear all;fmat='caseTomo_Kallerup_dx10_Feikonal-none_ME0_slo0_SE3_G0.mat';N=1000000;di_use=1;caseTomo_metropolis
+clear all;fmat='caseTomo_Kallerup_dx10_Feikonal-none_ME0_slo0_SE3_G0.mat';N=1000001;di_use=1;caseTomo_metropolis
 progress_out('End Metropolis')
 
 progress_out('Starting Rejection')
@@ -23,31 +24,38 @@ clear all;fmat='caseTomo_Kallerup_dx10_Feikonal-none_ME0_slo0_SE3_G0.mat';N=1000
 clear all;fmat='caseTomo_Kallerup_dx10_Feikonal-none_ME0_slo0_SE3_G0.mat';N=1000000;di_use=1;wx=5; wy=5;caseTomo_rejection_local
 clear all;fmat='caseTomo_Kallerup_dx10_Feikonal-none_ME0_slo0_SE3_G0.mat';N=1000000;di_use=1;wx=2; wy=2;caseTomo_rejection_local
 clear all;fmat='caseTomo_Kallerup_dx10_Feikonal-none_ME0_slo0_SE3_G0.mat';N=1000000;di_use=1;wx=1; wy=1;caseTomo_rejection_local
-% orig
-clear all;fmat='caseTomo_Kallerup_dx10_Feikonal-none_ME0_slo0_SE3_G0.mat';N=1000000;di_use=1;wx=13, wy=18;caseTomo_rejection_local
 
-% test small subsets 5X5
+%% orig
+clear all;fmat='caseTomo_Kallerup_dx10_Feikonal-none_ME0_slo0_SE3_G0.mat';N=1000000;di_use=1;wx=13, wy=18;caseTomo_rejection_local
+%% test small subsets 5X5
+clear all;fmat='caseTomo_Kallerup_dx10_Feikonal-none_ME0_slo0_SE3_G0.mat';N=1000000;di_use=1;writeH5=0;
+wx=5; wy=5; dg_perc=0.01;caseTomo_rejection_local
+
 clear all;fmat='caseTomo_Kallerup_dx10_Feikonal-none_ME0_slo0_SE3_G0.mat';N=1000000;di_use=1;writeH5=0;
 wx=5; wy=5; dg_perc=0.05;caseTomo_rejection_local
 
 clear all;fmat='caseTomo_Kallerup_dx10_Feikonal-none_ME0_slo0_SE3_G0.mat';N=1000000;di_use=1;writeH5=0;
 wx=5; wy=5; dg_perc=0.30;caseTomo_rejection_local
 
-% test DPErc
 clear all;fmat='caseTomo_Kallerup_dx10_Feikonal-none_ME0_slo0_SE3_G0.mat';N=1000000;di_use=1;writeH5=0;
-wx=25; wy=25; dg_perc=0.02;caseTomo_rejection_local
+wx=5; wy=5; dg_perc=0.50;caseTomo_rejection_local
+
+
+%% test DPErc
+clear all;fmat='caseTomo_Kallerup_dx10_Feikonal-none_ME0_slo0_SE3_G0.mat';N=1000000;di_use=1;writeH5=0;
+wx=10; wy=10; dg_perc=0.02;caseTomo_rejection_local
 
 clear all;fmat='caseTomo_Kallerup_dx10_Feikonal-none_ME0_slo0_SE3_G0.mat';N=1000000;di_use=1;writeH5=0;
-wx=25; wy=25; dg_perc=0.1;caseTomo_rejection_local
+wx=10; wy=10; dg_perc=0.1;caseTomo_rejection_local
 
 clear all;fmat='caseTomo_Kallerup_dx10_Feikonal-none_ME0_slo0_SE3_G0.mat';N=1000000;di_use=1;writeH5=0;
-wx=25; wy=25; dg_perc=0.3;caseTomo_rejection_local
+wx=10; wy=10; dg_perc=0.3;caseTomo_rejection_local
 
 clear all;fmat='caseTomo_Kallerup_dx10_Feikonal-none_ME0_slo0_SE3_G0.mat';N=1000000;di_use=1;writeH5=0;
-wx=25; wy=25; dg_perc=0.5;caseTomo_rejection_local
+wx=10; wy=10; dg_perc=0.5;caseTomo_rejection_local
 
 clear all;fmat='caseTomo_Kallerup_dx10_Feikonal-none_ME0_slo0_SE3_G0.mat';N=1000000;di_use=1;writeH5=0;
-wx=25; wy=25; dg_perc=1.0;caseTomo_rejection_local
+wx=10; wy=10; dg_perc=1.0;caseTomo_rejection_local
 
 
 
