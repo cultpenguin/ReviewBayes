@@ -192,7 +192,7 @@ save(txt_out)
 progress_out('-- Rejection: Stopping Sampling')
 
 %% plot logL
-figrue_focus(22);clf;
+figure_focus(22);clf;
 histogram(logL, 'Normalization', 'pdf');
 hold on
 histogram(logL_post, 'Normalization', 'pdf');

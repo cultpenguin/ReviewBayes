@@ -443,7 +443,7 @@ print_mul(sprintf('%s_logL',txt_h5_local))
 
 %%
 if doSave==1   
-    save([txt_h5_local,'.mat'],'post_*','T*','wx','wy','t','local_x','local_y','ndata','dg_perc')
+    save([txt_h5_local,'.mat'],'post_*','T*','wx','wy','t','local_x','local_y','ndata','dg_perc','logL*')
 end
 
 %

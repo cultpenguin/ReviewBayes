@@ -6,8 +6,8 @@ clear all;useCase='Kallerup';dx=0.10;forward.type='fat';is_slowness=1;addStaticE
 
 %%
 progress_out('Starting Metropolis')
-clear all;fmat='caseTomo_Kallerup_dx10_Feikonal-none_ME0_slo0_SE3_G0.mat';N=1000000;di_use=1;caseTomo_metropolis
-clear all;fmat='caseTomo_Kallerup_dx10_Feikonal-none_ME0_slo0_SE3_G0.mat';N=1000001;di_use=1;caseTomo_metropolis
+clear all;fmat='caseTomo_Kallerup_dx10_Feikonal-none_ME0_slo0_SE3_G0.mat';N=1000000;rseed=1;di_use=1;caseTomo_metropolis
+clear all;fmat='caseTomo_Kallerup_dx10_Feikonal-none_ME0_slo0_SE3_G0.mat';N=1000001;rseed=2;di_use=1;caseTomo_metropolis
 progress_out('End Metropolis')
 
 progress_out('Starting Rejection')
@@ -22,23 +22,65 @@ progress_out('End Local Rejection')
 clear all;fmat='caseTomo_Kallerup_dx10_Feikonal-none_ME0_slo0_SE3_G0.mat';N=1000000;di_use=1;
 local_x = 1.25;
 local_y = 1.75;
+writeH5=1;
 caseTomo_rejection_local
 
 %%
 clear all;fmat='caseTomo_Kallerup_dx10_Feikonal-none_ME0_slo0_SE3_G0.mat';N=1000000;di_use=1;
 local_x = 2.25;
 local_y = 3.5;
+writeH5=1;
 caseTomo_rejection_local
 
 %%
 close all;clear all;fmat='caseTomo_Kallerup_dx10_Feikonal-none_ME0_slo0_SE3_G0.mat';N=1000000;di_use=1;
 local_x = 0.9;
 local_y = 1.4;
+writeH5=1;
 caseTomo_rejection_local
 
 
+
+%% logL plot for manus
+clear L
+L1 = load('caseTomo_Kallerup_dx10_Feikonal-none_ME0_slo0_SE3_G0_rejection_N1000000_di1_out_localized_wx13_wy18_T9_P030.mat','logL_post')
+L2 = load('caseTomo_Kallerup_dx10_Feikonal-none_ME0_slo0_SE3_G0_rejection_N1000000_di1_out_localized_wx23_wy36_T9_P030.mat','logL_post')
+L3 = load('caseTomo_Kallerup_dx10_Feikonal-none_ME0_slo0_SE3_G0_rejection_N1000000_di1_out_localized_wx10_wy15_T9_P030.mat','logL_post')
+rej = load('caseTomo_Kallerup_dx10_Feikonal-none_ME0_slo0_SE3_G0_rejection_N1000000_di1_T12.mat','logL_post','logL')
+metro = load('caseTomo_Kallerup_dx10_Feikonal-none_ME0_slo0_SE3_G0_metropolis_N1000001_di1.mat','logL_post')
+
+figure(31);clf
+h{1}=histogram(rej.logL,'Normalization','pdf', 'NumBins',100);L{1}='Prior';
+hold on
+i=1;
+i=i+1;h{i}=histogram(metro.logL_post,'Normalization','pdf', 'NumBins',10);L{i}='Metropolis';
+i=i+1;h{i}=histogram(rej.logL_post,'Normalization','pdf', 'NumBins',10);L{i}='Rejection';
+i=i+1;h{i}=histogram(L1.logL_post,'Normalization','pdf', 'NumBins',10);L{i}='Local Rejection 1';
+i=i+1;h{i}=histogram(L2.logL_post,'Normalization','pdf', 'NumBins',10);L{i}='Local Rejection 2';
+i=i+1;h{i}=histogram(L3.logL_post,'Normalization','pdf', 'NumBins',10);L{i}='Local Rejection 3';
+hold off
+
+Nd=length(data{1}.d_obs);
+figure(32);clf
+histogram(rej.logL,'Normalization','pdf', 'NumBins',100)
+hold on
+for i=2:length(h)
+    x = (h{i}.BinEdges(2:end)+h{i}.BinEdges(1:end-1))/2;
+    d_pdf = h{i}.Values;
+    plot(x,d_pdf,'-')
+
+end
+plot(-[1 1].*Nd/2,ylim,'k--')
+hold off
+legend(L,'Location','northwest')
+grid on
+xlabel('log(L)')
+ppp(10,6,8,2,2)
+print_mul('CaseTomo_LogL_Compare')
+
 %%
 return
+
 
 %% FOR REVIEW
 clear all;fmat='caseTomo_Kallerup_dx10_Feikonal-none_ME0_slo0_SE3_G0.mat';N=1000000;di_use=1;wx=30; wy=30;caseTomo_rejection_local
